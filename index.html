@@ -249,6 +249,46 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
   </div>
 </div>
 
+<!-- EDIT RECURRING MODAL -->
+<div class="modal-overlay" id="rec-edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Recurring <button class="modal-close" id="rec-modal-close">×</button></div>
+    <div class="field"><label>Name</label><input type="text" id="reced-name" /></div>
+    <div class="row2">
+      <div class="field"><label>Amount (Rs.)</label><input type="number" id="reced-amount" min="0" step="1" inputmode="numeric" /></div>
+      <div class="field"><label>Category</label><select id="reced-cat"></select></div>
+    </div>
+    <div class="field"><label>Mode of Payment</label>
+      <div class="mode-toggle">
+        <button class="mode-btn active" data-mode="offline" id="reced-mode-offline">💵 Offline</button>
+        <button class="mode-btn" data-mode="online" id="reced-mode-online">📱 Online</button>
+      </div>
+    </div>
+    <div class="payment-sub" id="reced-offline-sub">
+      <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
+    </div>
+    <div class="payment-sub" id="reced-online-sub">
+      <div class="field"><label>Nature of Payment</label>
+        <div class="nature-chips" id="reced-nature-chips">
+          <button class="nature-chip active" data-nature="UPI">UPI</button>
+          <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
+          <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
+        </div>
+      </div>
+      <div class="field" id="reced-bank-field" style="display:none;"><label>Bank</label>
+        <select id="reced-bank">
+          <option value="Bank of Baroda">Bank of Baroda</option>
+          <option value="HDFC Bank">HDFC Bank</option>
+          <option value="American Express">American Express</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Notes (optional)</label><textarea id="reced-notes" placeholder="Optional notes…"></textarea></div>
+    <div class="err" id="reced-err"></div>
+    <button class="btn btn-green" id="btn-save-rec-edit" style="margin-top:8px;">Save Changes</button>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app">
 <div class="topbar">
@@ -443,6 +483,12 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
   <div class="section">
     <div class="section-title">🔮 Spending Forecast</div>
     <div id="forecast-area"></div>
+  </div>
+
+  <!-- Avg per transaction + Cash vs Digital -->
+  <div class="section">
+    <div class="section-title">📐 Quick Stats</div>
+    <div id="quickstats-area"></div>
   </div>
 
   <!-- Spending Trends -->
@@ -644,6 +690,8 @@ let activeChart='category', editingId=null;
 let addPayMode='offline', addNature='UPI';
 let editPayMode='offline', editNature='UPI';
 let recPayMode='offline', recNature='UPI';
+let recedPayMode='offline', recedNature='UPI';
+let editingRecId=null;
 let remType='Bill';
 let storedPin=localStorage.getItem('exp_pin')||'1234';
 
@@ -675,7 +723,17 @@ function filteredExpenses(){
     else list=list.filter(e=>e.nature===filterMode);
   }
   if(filterBank!=='all') list=list.filter(e=>e.bank===filterBank);
-  if(searchQuery) list=list.filter(e=>e.desc.toLowerCase().includes(searchQuery)||e.cat.toLowerCase().includes(searchQuery)||(e.notes||'').toLowerCase().includes(searchQuery)||(e.tag||'').toLowerCase().includes(searchQuery));
+  if(searchQuery){
+    list=list.filter(e=>{
+      const pl=payLabel(e).toLowerCase();
+      return e.desc.toLowerCase().includes(searchQuery)
+        ||e.cat.toLowerCase().includes(searchQuery)
+        ||(e.notes||'').toLowerCase().includes(searchQuery)
+        ||(e.tag||'').toLowerCase().includes(searchQuery)
+        ||pl.includes(searchQuery)
+        ||(e.bank||'').toLowerCase().includes(searchQuery);
+    });
+  }
   return list;
 }
 
@@ -705,6 +763,7 @@ function wirePayMode(prefix){
   function setMode(mode){
     if(prefix==='add') addPayMode=mode;
     else if(prefix==='edit') editPayMode=mode;
+    else if(prefix==='reced') recedPayMode=mode;
     else recPayMode=mode;
     offBtn.classList.toggle('active',mode==='offline');
     onBtn.classList.toggle('active',mode==='online');
@@ -714,6 +773,7 @@ function wirePayMode(prefix){
   function setNature(n){
     if(prefix==='add') addNature=n;
     else if(prefix==='edit') editNature=n;
+    else if(prefix==='reced') recedNature=n;
     else recNature=n;
     chips.forEach(c=>c.classList.toggle('active',c.dataset.nature===n));
     bankField.style.display=(n==='Credit Card'||n==='Debit Card')?'block':'none';
@@ -806,6 +866,7 @@ function renderRecurring(){
       </div>
       <div class="rec-actions">
         <button class="rec-add-btn" data-id="${r.id}">+ Add Today</button>
+        <button class="rec-edit-btn" data-id="${r.id}" style="background:#FFF8E1;border:none;color:#BA7517;font-size:12px;font-weight:bold;padding:6px 10px;border-radius:8px;cursor:pointer;">✏️</button>
         <button class="rec-del-btn" data-id="${r.id}">🗑</button>
       </div>
     </div>`;
@@ -1023,34 +1084,101 @@ function renderForecast(){
   `;
 }
 
-function renderInsights(){ renderTop3(); renderForecast(); renderTrends(); renderHeatmap(); renderMonthlySummary(); renderChart(); }
+function renderQuickStats(){
+  const area=document.getElementById('quickstats-area');
+  const filtered=filteredExpenses();
+  if(!filtered.length){area.innerHTML='<div class="empty">No data in selected period.</div>';return;}
+  const total=filtered.reduce((s,e)=>s+e.amount,0);
+  const avg=total/filtered.length;
+  const cashAmt=filtered.filter(e=>e.payMode==='offline').reduce((s,e)=>s+e.amount,0);
+  const digitalAmt=filtered.filter(e=>e.payMode==='online').reduce((s,e)=>s+e.amount,0);
+  const cashPct=total>0?Math.round((cashAmt/total)*100):0;
+  const digitalPct=100-cashPct;
+  const upiAmt=filtered.filter(e=>e.nature==='UPI').reduce((s,e)=>s+e.amount,0);
+  const dcAmt=filtered.filter(e=>e.nature==='Debit Card').reduce((s,e)=>s+e.amount,0);
+  const ccAmt=filtered.filter(e=>e.nature==='Credit Card').reduce((s,e)=>s+e.amount,0);
+  area.innerHTML=`
+    <div class="trend-card" style="margin-bottom:10px;">
+      <div class="trend-row"><span class="trend-title">💳 Average per transaction</span><span style="font-weight:700;color:#378ADD;font-size:15px;">${fmt(Math.round(avg))}</span></div>
+      <div class="trend-sub">${filtered.length} transactions · Total ${fmt(Math.round(total))}</div>
+    </div>
+    <div class="trend-card" style="margin-bottom:10px;">
+      <div class="trend-row"><span class="trend-title">💵 Cash vs Digital</span></div>
+      <div style="display:flex;gap:0;border-radius:8px;overflow:hidden;height:24px;margin:8px 0;">
+        ${cashPct>0?`<div style="width:${cashPct}%;background:#888780;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${cashPct>10?cashPct+'%':''}</div>`:''}
+        ${digitalPct>0?`<div style="width:${digitalPct}%;background:#1D9E75;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${digitalPct>10?digitalPct+'%':''}</div>`:''}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;">
+        <span>💵 Cash: ${fmt(Math.round(cashAmt))} (${cashPct}%)</span>
+        <span>📱 Digital: ${fmt(Math.round(digitalAmt))} (${digitalPct}%)</span>
+      </div>
+    </div>
+    ${digitalAmt>0?`<div class="trend-card">
+      <div class="trend-row"><span class="trend-title">📱 Digital Breakdown</span></div>
+      ${upiAmt>0?`<div class="summary-row"><span>UPI</span><span>${fmt(Math.round(upiAmt))} (${Math.round((upiAmt/total)*100)}%)</span></div>`:''}
+      ${dcAmt>0?`<div class="summary-row"><span>Debit Card</span><span>${fmt(Math.round(dcAmt))} (${Math.round((dcAmt/total)*100)}%)</span></div>`:''}
+      ${ccAmt>0?`<div class="summary-row"><span>Credit Card</span><span>${fmt(Math.round(ccAmt))} (${Math.round((ccAmt/total)*100)}%)</span></div>`:''}
+    </div>`:''}
+  `;
+}
+
+function renderInsights(){ renderTop3(); renderForecast(); renderQuickStats(); renderTrends(); renderHeatmap(); renderMonthlySummary(); renderChart(); }
+
+function updateReminderBadge(){
+  const todayStr=today();
+  const urgent=reminders.filter(r=>{
+    if(r.paid) return false;
+    const diff=Math.round((new Date(r.date)-new Date(todayStr))/(1000*60*60*24));
+    return diff<=0;
+  }).length;
+  const tab=document.querySelector('.nav-tab[data-tab="reminders"]');
+  if(tab){
+    const existing=tab.querySelector('.rem-badge');
+    if(existing) existing.remove();
+    if(urgent>0){
+      const badge=document.createElement('span');
+      badge.className='rem-badge';
+      badge.style.cssText='display:inline-block;background:#e74c3c;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;margin-left:3px;';
+      badge.textContent=urgent;
+      tab.appendChild(badge);
+    }
+  }
+}
 
 function renderReminderList(){
   const wrap=document.getElementById('rem-list');
-  if(!reminders.length){wrap.innerHTML='<div class="empty">No reminders yet.</div>';return;}
+  if(!reminders.length){wrap.innerHTML='<div class="empty">No reminders yet.</div>';updateReminderBadge();return;}
   const todayStr=today();
-  const sorted=[...reminders].sort((a,b)=>a.date.localeCompare(b.date));
+  const sorted=[...reminders].sort((a,b)=>{
+    if(a.paid!==b.paid) return (a.paid?1:-1);
+    return a.date.localeCompare(b.date);
+  });
   const typeIcon={Bill:'📄',SIP:'📈',EMI:'🏦',Other:'📌'};
   const typeColor={Bill:'#D85A30',SIP:'#1D9E75',EMI:'#378ADD',Other:'#888'};
   wrap.innerHTML=sorted.map(r=>{
     const diff=Math.round((new Date(r.date)-new Date(todayStr))/(1000*60*60*24));
     let dueCls='future', dueLabel=`In ${diff} days`;
-    if(diff<0){dueCls='overdue';dueLabel=`Overdue ${Math.abs(diff)}d`;}
+    if(r.paid){dueCls='future';dueLabel='✅ Paid';}
+    else if(diff<0){dueCls='overdue';dueLabel=`Overdue ${Math.abs(diff)}d`;}
     else if(diff===0){dueCls='today';dueLabel='Due Today!';}
     else if(diff<=3){dueCls='soon';dueLabel=`In ${diff} day${diff>1?'s':''}`;}
     const col=typeColor[r.type]||'#888';
-    return `<div class="rem-item">
+    return `<div class="rem-item" style="${r.paid?'opacity:0.55;':''}">
       <div class="rem-icon" style="background:${col}18;">${typeIcon[r.type]||'📌'}</div>
       <div class="rem-info">
-        <div class="rem-title">${r.title}${r.amount?` · ${fmt(r.amount)}`:''}</div>
+        <div class="rem-title">${r.paid?'<s>':''  }${r.title}${r.amount?` · ${fmt(r.amount)}`:''  }${r.paid?'</s>':''}</div>
         <div class="rem-meta">${r.type} · ${r.date}${r.notes?' · '+r.notes:''}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
         <span class="rem-due ${dueCls}">${dueLabel}</span>
-        <button class="rec-del-btn" data-remid="${r.id}" style="font-size:13px;">🗑</button>
+        <div style="display:flex;gap:5px;">
+          ${!r.paid?`<button class="rec-add-btn" data-paid="${r.id}" data-amount="${r.amount||0}" data-title="${r.title}" style="font-size:11px;padding:4px 8px;">✅ Paid</button>`:''}
+          <button class="rec-del-btn" data-remid="${r.id}">🗑</button>
+        </div>
       </div>
     </div>`;
   }).join('');
+  updateReminderBadge();
 }
 
 function renderPersonReport(){
@@ -1247,6 +1375,7 @@ window.initApp = async function(){
   wirePayMode('add');
   wirePayMode('edit');
   wirePayMode('rec');
+  wirePayMode('reced');
 
   const dot=document.getElementById('sync-dot');
   const syncLabel=document.getElementById('sync-label');
@@ -1278,6 +1407,7 @@ window.initApp = async function(){
   onSnapshot(query(collection(db,'reminders'),orderBy('date','asc')), snap=>{
     reminders=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderReminderList();
+    updateReminderBadge();
   });
 
   async function saveSettings(){
@@ -1384,16 +1514,55 @@ window.initApp = async function(){
   document.getElementById('rec-list').addEventListener('click', async e=>{
     const addBtn=e.target.closest('.rec-add-btn');
     const delBtn=e.target.closest('.rec-del-btn');
+    const editBtn=e.target.closest('.rec-edit-btn');
     if(addBtn){
       const r=recurringItems.find(x=>x.id===addBtn.dataset.id);
       if(!r) return;
-      await addDoc(collection(db,'expenses'),{desc:r.name,amount:r.amount,cat:r.cat,date:today(),notes:r.notes||'Recurring',payMode:r.payMode,nature:r.nature||'',bank:r.bank||''});
+      await addDoc(collection(db,'expenses'),{desc:r.name,amount:r.amount,cat:r.cat,date:today(),notes:r.notes||'Recurring',payMode:r.payMode,nature:r.nature||'',bank:r.bank||'',tag:''});
       addBtn.textContent='✓ Added!';
       setTimeout(()=>{addBtn.textContent='+ Add Today';},2000);
       switchTab('home');
     }
     if(delBtn){ if(!confirm('Remove this recurring expense?')) return; await deleteDoc(doc(db,'recurring',delBtn.dataset.id)); }
+    if(editBtn){
+      const r=recurringItems.find(x=>x.id===editBtn.dataset.id);
+      if(!r) return;
+      editingRecId=r.id;
+      buildCatSelect('reced-cat');
+      document.getElementById('reced-name').value=r.name;
+      document.getElementById('reced-amount').value=r.amount;
+      document.getElementById('reced-cat').value=r.cat;
+      document.getElementById('reced-notes').value=r.notes||'';
+      recedPayMode=r.payMode||'offline';
+      recedNature=r.nature||'UPI';
+      const offBtn=document.getElementById('reced-mode-offline');
+      const onBtn=document.getElementById('reced-mode-online');
+      offBtn.classList.toggle('active',recedPayMode==='offline');
+      onBtn.classList.toggle('active',recedPayMode==='online');
+      document.getElementById('reced-offline-sub').classList.toggle('show',recedPayMode==='offline');
+      document.getElementById('reced-online-sub').classList.toggle('show',recedPayMode==='online');
+      document.querySelectorAll('#reced-nature-chips .nature-chip').forEach(c=>c.classList.toggle('active',c.dataset.nature===recedNature));
+      document.getElementById('reced-bank-field').style.display=(recedNature==='Credit Card'||recedNature==='Debit Card')?'block':'none';
+      if(r.bank) document.getElementById('reced-bank').value=r.bank;
+      document.getElementById('rec-edit-modal').classList.add('show');
+    }
   });
+
+  document.getElementById('btn-save-rec-edit').addEventListener('click', async()=>{
+    const name=document.getElementById('reced-name').value.trim();
+    const amount=parseFloat(document.getElementById('reced-amount').value);
+    const cat=document.getElementById('reced-cat').value;
+    const notes=document.getElementById('reced-notes').value.trim();
+    const err=document.getElementById('reced-err');
+    if(!name){err.textContent='Please enter a name.';return;}
+    if(!amount||amount<=0){err.textContent='Please enter a valid amount.';return;}
+    err.textContent='';
+    const bank=(recedPayMode==='online'&&(recedNature==='Credit Card'||recedNature==='Debit Card'))?document.getElementById('reced-bank').value:'';
+    await updateDoc(doc(db,'recurring',editingRecId),{name,amount,cat,notes,payMode:recedPayMode,nature:recedPayMode==='online'?recedNature:'',bank});
+    document.getElementById('rec-edit-modal').classList.remove('show');
+    editingRecId=null;
+  });
+  document.getElementById('rec-modal-close').addEventListener('click',()=>document.getElementById('rec-edit-modal').classList.remove('show'));
 
   // ── FILTERS ──
   document.getElementById('search-input').addEventListener('input', e=>{ searchQuery=e.target.value.toLowerCase(); renderList(); });
@@ -1451,9 +1620,26 @@ window.initApp = async function(){
     document.getElementById('rem-notes').value='';
   });
   document.getElementById('rem-list').addEventListener('click', async e=>{
-    const btn=e.target.closest('[data-remid]'); if(!btn) return;
-    if(!confirm('Delete this reminder?')) return;
-    await deleteDoc(doc(db,'reminders',btn.dataset.remid));
+    const paidBtn=e.target.closest('[data-paid]');
+    const delBtn=e.target.closest('[data-remid]');
+    if(paidBtn){
+      const rid=paidBtn.dataset.paid;
+      const amount=parseFloat(paidBtn.dataset.amount)||0;
+      const title=paidBtn.dataset.title;
+      if(confirm(`Mark "${title}" as paid?${amount>0?` Add Rs.${Math.round(amount).toLocaleString('en-IN')} as expense too?`:''}`)){
+        await updateDoc(doc(db,'reminders',rid),{paid:true});
+        if(amount>0){
+          const rem=reminders.find(r=>r.id===rid);
+          await addDoc(collection(db,'expenses'),{desc:title,amount,cat:'Other',date:today(),notes:`Paid: ${rem?.type||''}`,payMode:'offline',nature:'',bank:'',tag:''});
+          switchTab('home');
+        }
+      }
+      return;
+    }
+    if(delBtn){
+      if(!confirm('Delete this reminder?')) return;
+      await deleteDoc(doc(db,'reminders',delBtn.dataset.remid));
+    }
   });
 
   // ── PEOPLE ──
