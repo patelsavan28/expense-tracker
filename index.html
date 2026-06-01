@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,8 +149,30 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
 .budget-alert { margin:10px 14px 0; background:#FFF3CD; border:1.5px solid #FFC107; border-radius:10px; padding:10px 14px; font-size:13px; color:#856404; display:none; }
 .budget-alert.show { display:flex; align-items:center; gap:8px; }
 
-/* NOTIFICATION BELL */
-.notif-dot { width:8px; height:8px; background:#e74c3c; border-radius:50%; position:absolute; top:-2px; right:-2px; display:none; }
+/* REMINDERS */
+.rem-item { display:flex; align-items:center; gap:10px; padding:12px 14px; background:#fff; border:1.5px solid #f0f0f0; border-radius:11px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.rem-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.rem-info { flex:1; min-width:0; }
+.rem-title { font-weight:bold; font-size:13px; }
+.rem-meta { font-size:11px; color:#aaa; margin-top:2px; }
+.rem-due { font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.rem-due.overdue { background:#FDECEA; color:#c0392b; }
+.rem-due.today { background:#FFF3CD; color:#856404; }
+.rem-due.soon { background:#E1F5EE; color:#0F6E56; }
+.rem-due.future { background:#f0f0f0; color:#888; }
+
+/* PERSON REPORT */
+.person-card { background:#fff; border:1.5px solid #f0f0f0; border-radius:11px; padding:13px 14px; margin-bottom:10px; }
+.person-card-title { font-size:13px; font-weight:700; color:#378ADD; margin-bottom:8px; display:flex; justify-content:space-between; }
+.person-card-total { font-size:14px; font-weight:700; color:#1D9E75; }
+
+/* TOP 3 EXPENSES */
+.top-exp-card { display:flex; align-items:center; gap:10px; padding:11px 13px; background:#fff; border:1.5px solid #f0f0f0; border-radius:11px; margin-bottom:8px; }
+.top-exp-rank { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.top-exp-info { flex:1; min-width:0; }
+.top-exp-desc { font-weight:bold; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.top-exp-meta { font-size:11px; color:#aaa; margin-top:2px; }
+.top-exp-amount { font-weight:bold; font-size:14px; color:#1D9E75; white-space:nowrap; }
 .chart-tab { padding:6px 14px; border:1.5px solid #e0e0e0; border-radius:20px; background:none; font-size:12px; color:#777; cursor:pointer; font-weight:500; }
 .chart-tab.active { background:#1D9E75; color:#fff; border-color:#1D9E75; }
 .bar-row { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
@@ -222,6 +243,7 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
       </div>
     </div>
     <div class="field"><label>Notes / Remarks</label><textarea id="edit-notes" placeholder="Optional notes…"></textarea></div>
+    <div class="field"><label>👤 Tag (Person)</label><select id="edit-tag"><option value="">— None —</option></select></div>
     <div class="err" id="edit-err"></div>
     <button class="btn btn-green" id="btn-save-edit" style="margin-top:8px;">Save Changes</button>
   </div>
@@ -238,12 +260,15 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
   </div>
 </div>
 
-<div class="nav-tabs">
-  <button class="nav-tab active" data-tab="home">🏠 Home</button>
-  <button class="nav-tab" data-tab="add">➕ Add</button>
-  <button class="nav-tab" data-tab="recurring">🔁 Recurring</button>
-  <button class="nav-tab" data-tab="insights">💡 Insights</button>
-  <button class="nav-tab" data-tab="export">📤 Export</button>
+<div class="nav-tabs" style="overflow-x:auto;scrollbar-width:none;">
+  <button class="nav-tab active" data-tab="home" style="min-width:60px;">🏠</button>
+  <button class="nav-tab" data-tab="add" style="min-width:60px;">➕</button>
+  <button class="nav-tab" data-tab="recurring" style="min-width:60px;">🔁</button>
+  <button class="nav-tab" data-tab="insights" style="min-width:60px;">💡</button>
+  <button class="nav-tab" data-tab="reminders" style="min-width:60px;">🔔</button>
+  <button class="nav-tab" data-tab="people" style="min-width:60px;">👥</button>
+  <button class="nav-tab" data-tab="settings" style="min-width:60px;">⚙️</button>
+  <button class="nav-tab" data-tab="export" style="min-width:60px;">📤</button>
 </div>
 
 <!-- HOME TAB -->
@@ -332,6 +357,7 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
       </div>
     </div>
     <div class="field"><label>Notes / Remarks (optional)</label><textarea id="inp-notes" placeholder="e.g. Monthly grocery run…"></textarea></div>
+    <div class="field"><label>👤 Tag (Person) <span style="color:#bbb;font-weight:normal;">optional</span></label><select id="inp-tag"><option value="">— None —</option></select></div>
     <div class="err" id="err-msg"></div>
     <button class="btn btn-green" id="btn-add">+ Add Expense</button>
   </div>
@@ -407,6 +433,18 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
 <!-- INSIGHTS TAB -->
 <div id="tab-insights" style="display:none;">
 
+  <!-- Top 3 Expenses -->
+  <div class="section" style="margin-top:14px;">
+    <div class="section-title">🏆 Top 3 Biggest Expenses <span style="font-size:11px;color:#aaa;font-weight:normal;">— based on Home filter</span></div>
+    <div id="top3-area"></div>
+  </div>
+
+  <!-- Spending Forecast -->
+  <div class="section">
+    <div class="section-title">🔮 Spending Forecast</div>
+    <div id="forecast-area"></div>
+  </div>
+
   <!-- Spending Trends -->
   <div class="section" style="margin-top:14px;">
     <div class="section-title">📈 Spending Trends</div>
@@ -450,6 +488,89 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
   <div class="bottom-space"></div>
 </div>
 
+<!-- REMINDERS TAB -->
+<div id="tab-reminders" style="display:none;">
+  <div class="section" style="margin-top:14px;">
+    <div class="section-title">🔔 Add Reminder</div>
+    <div class="field"><label>Title</label><input type="text" id="rem-title" placeholder="e.g. Electricity Bill, SIP Investment…" /></div>
+    <div class="row2">
+      <div class="field"><label>Due Date</label><input type="date" id="rem-date" /></div>
+      <div class="field"><label>Amount (Rs.) optional</label><input type="number" id="rem-amount" placeholder="0" min="0" inputmode="numeric" /></div>
+    </div>
+    <div class="field"><label>Type</label>
+      <div class="nature-chips" id="rem-type-chips">
+        <button class="nature-chip active" data-type="Bill">📄 Bill</button>
+        <button class="nature-chip" data-type="SIP">📈 SIP</button>
+        <button class="nature-chip" data-type="EMI">🏦 EMI</button>
+        <button class="nature-chip" data-type="Other">📌 Other</button>
+      </div>
+    </div>
+    <div class="field"><label>Notes (optional)</label><input type="text" id="rem-notes" placeholder="e.g. HDFC SIP, Electricity PGVCL…" /></div>
+    <div class="err" id="err-rem"></div>
+    <button class="btn btn-green" id="btn-add-rem">+ Add Reminder</button>
+  </div>
+  <div class="section">
+    <div class="section-title">📋 Your Reminders</div>
+    <div id="rem-list"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+
+<!-- PEOPLE TAB -->
+<div id="tab-people" style="display:none;">
+  <div class="section" style="margin-top:14px;">
+    <div class="section-title">👤 Manage People Tags</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px;">Add person names to tag expenses — e.g. Wife, Son, Office.</div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="inp-person" placeholder="e.g. Wife, Son, Office…" style="flex:1;padding:9px 11px;border:1.5px solid #e8e8e8;border-radius:9px;font-size:13px;background:#fafafa;" />
+      <button style="padding:9px 15px;border:none;border-radius:9px;background:#1D9E75;color:#fff;font-size:13px;font-weight:bold;cursor:pointer;" id="btn-addperson">Add</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;" id="person-list"></div>
+    <div class="err" id="err-person"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">📊 Person-wise Report</div>
+    <div class="filter-scroll" id="filter-person-period">
+      <button class="filter-chip active" data-pperiod="all">All time</button>
+      <button class="filter-chip" data-pperiod="month">This month</button>
+      <button class="filter-chip" data-pperiod="year">This year</button>
+    </div>
+    <div id="person-report-area"></div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="tab-settings" style="display:none;">
+  <div class="section" style="margin-top:14px;">
+    <div class="section-title">🔑 Change PIN</div>
+    <div class="field"><label>Current PIN</label><input type="password" id="set-cur-pin" placeholder="••••" maxlength="20" /></div>
+    <div class="field"><label>New PIN</label><input type="password" id="set-new-pin" placeholder="••••" maxlength="20" /></div>
+    <div class="field"><label>Confirm New PIN</label><input type="password" id="set-conf-pin" placeholder="••••" maxlength="20" /></div>
+    <div class="err" id="pin-err"></div>
+    <button class="btn btn-green" id="btn-change-pin">Change PIN</button>
+    <div style="font-size:12px;color:#1D9E75;font-weight:bold;margin-top:6px;min-height:16px;" id="pin-msg"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">☁️ Backup to Google Drive</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.6;">Downloads a full JSON backup of all your expenses. Save it to Google Drive manually for safekeeping.</div>
+    <button class="btn btn-green" id="btn-backup">⬇️ Download Backup (JSON)</button>
+    <div style="margin-top:12px;">
+      <div class="section-title" style="font-size:12px;margin-bottom:8px;">Restore from Backup</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Upload a previously downloaded JSON backup file to restore your data.</div>
+      <input type="file" id="inp-restore" accept=".json" style="font-size:12px;" />
+      <button class="btn btn-outline-green" id="btn-restore" style="margin-top:8px;">↑ Restore from File</button>
+      <div style="font-size:12px;color:#1D9E75;font-weight:bold;margin-top:6px;min-height:16px;" id="restore-msg"></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title" style="color:#c0392b;">⚠️ Danger Zone</div>
+    <button class="btn" id="btn-clear-all" style="background:#FDECEA;color:#c0392b;border:1.5px solid #f44336;">🗑 Clear All Expenses</button>
+    <div style="font-size:11px;color:#aaa;margin-top:6px;">This will permanently delete all expense data.</div>
+  </div>
+  <div class="bottom-space"></div>
+</div>
+
 <!-- EXPORT TAB -->
 <div id="tab-export" style="display:none;">
   <div class="section" style="margin-top:14px;">
@@ -479,7 +600,7 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
 </div><!-- end #app -->
 
 <script>
-const CORRECT_PASSWORD='Welcome@10';
+const CORRECT_PASSWORD=localStorage.getItem('exp_pin')||'1234';
 const SESSION_KEY='exp_unlocked';
 function isUnlocked(){ const v=localStorage.getItem(SESSION_KEY); return v&&Date.now()<parseInt(v); }
 function unlock(){ localStorage.setItem(SESSION_KEY,(Date.now()+7*24*60*60*1000).toString()); document.getElementById('lock-screen').style.display='none'; document.getElementById('app').style.display='block'; }
@@ -517,12 +638,14 @@ const CAT_ICONS={Food:'🍽️',Transport:'🚗',Housing:'🏠',Health:'💊',Sh
 const EXTRA_COLORS=['#534AB7','#0F6E56','#993C1D','#185FA5','#3B6D11','#854F0B','#993556','#5F5E5A'];
 const EXTRA_ICONS=['⭐','🌿','🔥','💧','🌱','☀️','💡','🎯'];
 
-let db, expenses=[], customCats=[], recurringItems=[], monthlyBudget=0;
-let filterPeriod='all', filterMode='all', filterBank='all', searchQuery='';
+let db, expenses=[], customCats=[], recurringItems=[], reminders=[], persons=[], monthlyBudget=0;
+let filterPeriod='all', filterMode='all', filterBank='all', filterPersonPeriod='all', searchQuery='';
 let activeChart='category', editingId=null;
 let addPayMode='offline', addNature='UPI';
 let editPayMode='offline', editNature='UPI';
 let recPayMode='offline', recNature='UPI';
+let remType='Bill';
+let storedPin=localStorage.getItem('exp_pin')||'1234';
 
 function catColor(c){ return CAT_COLORS[c]||EXTRA_COLORS[customCats.indexOf(c)%EXTRA_COLORS.length]||'#888'; }
 function catIcon(c){ return CAT_ICONS[c]||EXTRA_ICONS[customCats.indexOf(c)%EXTRA_ICONS.length]||'📌'; }
@@ -552,7 +675,7 @@ function filteredExpenses(){
     else list=list.filter(e=>e.nature===filterMode);
   }
   if(filterBank!=='all') list=list.filter(e=>e.bank===filterBank);
-  if(searchQuery) list=list.filter(e=>e.desc.toLowerCase().includes(searchQuery)||e.cat.toLowerCase().includes(searchQuery)||(e.notes||'').toLowerCase().includes(searchQuery));
+  if(searchQuery) list=list.filter(e=>e.desc.toLowerCase().includes(searchQuery)||e.cat.toLowerCase().includes(searchQuery)||(e.notes||'').toLowerCase().includes(searchQuery)||(e.tag||'').toLowerCase().includes(searchQuery));
   return list;
 }
 
@@ -661,6 +784,7 @@ function renderList(){
           </div>
         </div>
         ${e.notes?`<div class="exp-notes">📝 ${e.notes}</div>`:''}
+        ${e.tag?`<div style="font-size:11px;color:#3060CC;margin-top:5px;padding-top:5px;border-top:1px solid #f5f5f5;">👤 ${e.tag}</div>`:''}
       </div>`;
     });
   });
@@ -852,7 +976,125 @@ function renderMonthlySummary(){
   area.innerHTML=html||'<div class="empty">No data yet.</div>';
 }
 
-function renderInsights(){ renderTrends(); renderHeatmap(); renderMonthlySummary(); renderChart(); }
+function renderTop3(){
+  const area=document.getElementById('top3-area');
+  const filtered=filteredExpenses();
+  if(!filtered.length){area.innerHTML='<div class="empty">No expenses in selected period.</div>';return;}
+  const top3=[...filtered].sort((a,b)=>b.amount-a.amount).slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  const colors=['#FFD700','#C0C0C0','#CD7F32'];
+  area.innerHTML=top3.map((e,i)=>`
+    <div class="top-exp-card">
+      <div class="top-exp-rank" style="background:${colors[i]}22;color:${colors[i]};">${medals[i]}</div>
+      <div class="top-exp-info">
+        <div class="top-exp-desc">${e.desc}</div>
+        <div class="top-exp-meta">${e.cat} · ${e.date}${e.tag?' · 👤 '+e.tag:''}</div>
+      </div>
+      <div class="top-exp-amount">${fmt(e.amount)}</div>
+    </div>`).join('');
+}
+
+function renderForecast(){
+  const area=document.getElementById('forecast-area');
+  const now=new Date();
+  const dayOfMonth=now.getDate();
+  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const monthExp=expenses.filter(e=>{const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  if(monthExp.length<3){area.innerHTML='<div class="empty">Need at least 3 expenses this month for forecast.</div>';return;}
+  const spentSoFar=monthExp.reduce((s,e)=>s+e.amount,0);
+  const dailyAvg=spentSoFar/dayOfMonth;
+  const forecast=Math.round(dailyAvg*daysInMonth);
+  const remaining=daysInMonth-dayOfMonth;
+  const remainingBudget=monthlyBudget?monthlyBudget-spentSoFar:null;
+  const pct=monthlyBudget?Math.round((forecast/monthlyBudget)*100):null;
+  area.innerHTML=`
+    <div class="trend-card">
+      <div class="trend-row"><span class="trend-title">Daily average this month</span><span style="font-weight:700;color:#378ADD;">${fmt(Math.round(dailyAvg))}/day</span></div>
+      <div class="trend-sub">Based on ${dayOfMonth} days · ${remaining} days remaining</div>
+    </div>
+    <div class="trend-card">
+      <div class="trend-row"><span class="trend-title">Projected month-end total</span><span style="font-weight:700;color:${pct&&pct>100?'#c0392b':'#1D9E75'};">${fmt(forecast)}</span></div>
+      <div class="trend-sub">${spentSoFar>0?`Spent ${fmt(spentSoFar)} in ${dayOfMonth} days`:''} ${pct?`· ${pct}% of budget`:''}</div>
+    </div>
+    ${remainingBudget!==null?`<div class="trend-card">
+      <div class="trend-row"><span class="trend-title">Budget remaining</span><span class="trend-badge ${remainingBudget<0?'up':'down'}">${remainingBudget<0?'Over budget':fmt(remainingBudget)+' left'}</span></div>
+      <div class="trend-sub">Safe to spend ${fmt(Math.max(0,Math.round(remainingBudget/Math.max(remaining,1))))/1} per day to stay on budget</div>
+    </div>`:''}
+  `;
+}
+
+function renderInsights(){ renderTop3(); renderForecast(); renderTrends(); renderHeatmap(); renderMonthlySummary(); renderChart(); }
+
+function renderReminderList(){
+  const wrap=document.getElementById('rem-list');
+  if(!reminders.length){wrap.innerHTML='<div class="empty">No reminders yet.</div>';return;}
+  const todayStr=today();
+  const sorted=[...reminders].sort((a,b)=>a.date.localeCompare(b.date));
+  const typeIcon={Bill:'📄',SIP:'📈',EMI:'🏦',Other:'📌'};
+  const typeColor={Bill:'#D85A30',SIP:'#1D9E75',EMI:'#378ADD',Other:'#888'};
+  wrap.innerHTML=sorted.map(r=>{
+    const diff=Math.round((new Date(r.date)-new Date(todayStr))/(1000*60*60*24));
+    let dueCls='future', dueLabel=`In ${diff} days`;
+    if(diff<0){dueCls='overdue';dueLabel=`Overdue ${Math.abs(diff)}d`;}
+    else if(diff===0){dueCls='today';dueLabel='Due Today!';}
+    else if(diff<=3){dueCls='soon';dueLabel=`In ${diff} day${diff>1?'s':''}`;}
+    const col=typeColor[r.type]||'#888';
+    return `<div class="rem-item">
+      <div class="rem-icon" style="background:${col}18;">${typeIcon[r.type]||'📌'}</div>
+      <div class="rem-info">
+        <div class="rem-title">${r.title}${r.amount?` · ${fmt(r.amount)}`:''}</div>
+        <div class="rem-meta">${r.type} · ${r.date}${r.notes?' · '+r.notes:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <span class="rem-due ${dueCls}">${dueLabel}</span>
+        <button class="rec-del-btn" data-remid="${r.id}" style="font-size:13px;">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPersonReport(){
+  const area=document.getElementById('person-report-area');
+  if(!persons.length){area.innerHTML='<div class="empty">No people tags added yet. Add them above.</div>';return;}
+  const now=new Date();
+  const pperiod=document.querySelector('#filter-person-period .filter-chip.active')?.dataset.pperiod||'all';
+  const filtered=expenses.filter(e=>{
+    if(pperiod==='month'){const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}
+    if(pperiod==='year') return new Date(e.date).getFullYear()===now.getFullYear();
+    return true;
+  });
+  let html='';
+  persons.forEach(p=>{
+    const pExp=filtered.filter(e=>e.tag===p);
+    if(!pExp.length) return;
+    const total=pExp.reduce((s,e)=>s+e.amount,0);
+    const ct={};pExp.forEach(e=>{ct[e.cat]=(ct[e.cat]||0)+e.amount;});
+    const topCats=Object.entries(ct).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    html+=`<div class="person-card">
+      <div class="person-card-title"><span>👤 ${p}</span><span class="person-card-total">${fmt(total)}</span></div>
+      ${topCats.map(([c,a])=>`<div class="summary-row"><span>${catIcon(c)} ${c}</span><span>${fmt(a)}</span></div>`).join('')}
+      <div style="font-size:11px;color:#aaa;margin-top:6px;">${pExp.length} expense${pExp.length>1?'s':''}</div>
+    </div>`;
+  });
+  area.innerHTML=html||'<div class="empty">No expenses tagged for selected period.</div>';
+}
+
+function buildPersonTagSelects(){
+  ['inp-tag','edit-tag'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">— None —</option>'+persons.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  });
+}
+
+function buildPersonList(){
+  document.getElementById('person-list').innerHTML=persons.map(p=>
+    `<div style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:20px;background:#EEF4FF;color:#3060CC;border:1px solid #B0C8F8;">
+      <span>👤 ${p}</span><button data-person="${p}" style="background:none;border:none;cursor:pointer;color:#3060CC;font-size:14px;padding:0;">×</button>
+    </div>`
+  ).join('');
+}
 
 // Budget Alert
 function checkBudgetAlert(){
@@ -910,7 +1152,7 @@ function buildFullReportText(){
 function shareWhatsApp(text){ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank'); }
 function shareEmail(subject,body){ window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank'); }
 
-function render(){ renderMetrics(); renderList(); renderChart(); checkBudgetAlert(); }
+function render(){ renderMetrics(); renderList(); renderChart(); checkBudgetAlert(); if(document.getElementById('tab-insights').style.display==='block') renderInsights(); }
 
 // ── EDIT MODAL ──
 function openEditModal(e){
@@ -940,6 +1182,8 @@ function openEditModal(e){
   if(e.bank) document.getElementById('edit-bank').value=e.bank;
 
   document.getElementById('edit-modal').classList.add('show');
+  buildPersonTagSelects();
+  if(e.tag) document.getElementById('edit-tag').value=e.tag;
 }
 
 // ── EXPORT ──
@@ -1013,9 +1257,10 @@ window.initApp = async function(){
     const d=snap.data();
     customCats=d.customCats||[];
     monthlyBudget=d.monthlyBudget||0;
+    persons=d.persons||[];
     if(monthlyBudget) document.getElementById('inp-budget').value=monthlyBudget;
   }
-  buildAllCatSelects(); buildCustomCatList();
+  buildAllCatSelects(); buildCustomCatList(); buildPersonList(); buildPersonTagSelects();
 
   // Expenses listener
   onSnapshot(query(collection(db,'expenses'),orderBy('date','desc')), snap=>{
@@ -1029,8 +1274,14 @@ window.initApp = async function(){
     renderRecurring();
   });
 
+  // Reminders listener
+  onSnapshot(query(collection(db,'reminders'),orderBy('date','asc')), snap=>{
+    reminders=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderReminderList();
+  });
+
   async function saveSettings(){
-    await setDoc(doc(db,'settings','data'),{customCats,monthlyBudget});
+    await setDoc(doc(db,'settings','data'),{customCats,monthlyBudget,persons});
   }
 
   // ── ADD EXPENSE ──
@@ -1047,7 +1298,8 @@ window.initApp = async function(){
     if(date>today()){err.textContent='Future date not allowed.';return;}
     err.textContent='';
     const bank=(addPayMode==='online'&&(addNature==='Credit Card'||addNature==='Debit Card'))?document.getElementById('add-bank').value:'';
-    await addDoc(collection(db,'expenses'),{desc,amount,cat,date,notes,payMode:addPayMode,nature:addPayMode==='online'?addNature:'',bank});
+    const tag=document.getElementById('inp-tag').value;
+    await addDoc(collection(db,'expenses'),{desc,amount,cat,date,notes,payMode:addPayMode,nature:addPayMode==='online'?addNature:'',bank,tag});
     document.getElementById('inp-desc').value='';
     document.getElementById('inp-amount').value='';
     document.getElementById('inp-notes').value='';
@@ -1071,7 +1323,8 @@ window.initApp = async function(){
     if(date>today()){err.textContent='Future date not allowed.';return;}
     err.textContent='';
     const bank=(editPayMode==='online'&&(editNature==='Credit Card'||editNature==='Debit Card'))?document.getElementById('edit-bank').value:'';
-    await updateDoc(doc(db,'expenses',editingId),{desc,amount,cat,date,notes,payMode:editPayMode,nature:editPayMode==='online'?editNature:'',bank});
+    const tag=document.getElementById('edit-tag').value;
+    await updateDoc(doc(db,'expenses',editingId),{desc,amount,cat,date,notes,payMode:editPayMode,nature:editPayMode==='online'?editNature:'',bank,tag});
     document.getElementById('edit-modal').classList.remove('show');
     editingId=null;
   });
@@ -1174,6 +1427,118 @@ window.initApp = async function(){
     btn.addEventListener('click',()=>switchTab(btn.dataset.tab));
   });
 
+  // ── REMINDERS ──
+  document.getElementById('rem-date').value=today();
+  let remType='Bill';
+  document.querySelectorAll('#rem-type-chips .nature-chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('#rem-type-chips .nature-chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active'); remType=c.dataset.type;
+    });
+  });
+  document.getElementById('btn-add-rem').addEventListener('click', async()=>{
+    const title=document.getElementById('rem-title').value.trim();
+    const date=document.getElementById('rem-date').value;
+    const amount=parseFloat(document.getElementById('rem-amount').value)||0;
+    const notes=document.getElementById('rem-notes').value.trim();
+    const err=document.getElementById('err-rem');
+    if(!title){err.textContent='Please enter a title.';return;}
+    if(!date){err.textContent='Please select a date.';return;}
+    err.textContent='';
+    await addDoc(collection(db,'reminders'),{title,date,amount,notes,type:remType});
+    document.getElementById('rem-title').value='';
+    document.getElementById('rem-amount').value='';
+    document.getElementById('rem-notes').value='';
+  });
+  document.getElementById('rem-list').addEventListener('click', async e=>{
+    const btn=e.target.closest('[data-remid]'); if(!btn) return;
+    if(!confirm('Delete this reminder?')) return;
+    await deleteDoc(doc(db,'reminders',btn.dataset.remid));
+  });
+
+  // ── PEOPLE ──
+  document.getElementById('btn-addperson').addEventListener('click', async()=>{
+    const val=document.getElementById('inp-person').value.trim();
+    const err=document.getElementById('err-person');
+    if(!val){err.textContent='Enter a name.';return;}
+    if(persons.map(p=>p.toLowerCase()).includes(val.toLowerCase())){err.textContent='Already exists.';return;}
+    err.textContent=''; persons.push(val); await saveSettings();
+    document.getElementById('inp-person').value='';
+    buildPersonList(); buildPersonTagSelects(); renderPersonReport();
+  });
+  document.getElementById('person-list').addEventListener('click', async e=>{
+    const btn=e.target.closest('button[data-person]'); if(!btn) return;
+    if(!confirm('Remove person "'+btn.dataset.person+'"?')) return;
+    persons=persons.filter(p=>p!==btn.dataset.person);
+    await saveSettings(); buildPersonList(); buildPersonTagSelects(); renderPersonReport();
+  });
+  document.getElementById('filter-person-period').addEventListener('click', e=>{
+    const btn=e.target.closest('.filter-chip'); if(!btn) return;
+    document.querySelectorAll('#filter-person-period .filter-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); renderPersonReport();
+  });
+
+  // ── PIN CHANGE ──
+  document.getElementById('btn-change-pin').addEventListener('click',()=>{
+    const cur=document.getElementById('set-cur-pin').value;
+    const nw=document.getElementById('set-new-pin').value;
+    const cf=document.getElementById('set-conf-pin').value;
+    const err=document.getElementById('pin-err');
+    const msg=document.getElementById('pin-msg');
+    const currentPin=localStorage.getItem('exp_pin')||'1234';
+    if(cur!==currentPin){err.textContent='Current PIN is incorrect.';return;}
+    if(nw.length<4){err.textContent='New PIN must be at least 4 characters.';return;}
+    if(nw!==cf){err.textContent='New PIN and confirm PIN do not match.';return;}
+    err.textContent='';
+    localStorage.setItem('exp_pin',nw);
+    document.getElementById('set-cur-pin').value='';
+    document.getElementById('set-new-pin').value='';
+    document.getElementById('set-conf-pin').value='';
+    msg.textContent='PIN changed successfully!';
+    setTimeout(()=>{msg.textContent='';},3000);
+  });
+
+  // ── BACKUP ──
+  document.getElementById('btn-backup').addEventListener('click',()=>{
+    const data=JSON.stringify({expenses,customCats,persons,monthlyBudget,recurringItems,reminders,exportDate:new Date().toISOString()},null,2);
+    const blob=new Blob([data],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='expense_backup_'+today()+'.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},300);
+  });
+
+  // ── RESTORE ──
+  document.getElementById('btn-restore').addEventListener('click',()=>{
+    const file=document.getElementById('inp-restore').files[0];
+    const msg=document.getElementById('restore-msg');
+    if(!file){msg.style.color='#c0392b';msg.textContent='Please select a backup file.';return;}
+    const reader=new FileReader();
+    reader.onload=async(ev)=>{
+      try{
+        const bk=JSON.parse(ev.target.result);
+        if(!bk.expenses){msg.style.color='#c0392b';msg.textContent='Invalid backup file.';return;}
+        if(!confirm(`Restore ${bk.expenses.length} expenses? This will ADD to existing data.`)) return;
+        for(const e of bk.expenses){
+          const {id,...rest}=e;
+          await addDoc(collection(db,'expenses'),rest);
+        }
+        msg.style.color='#1D9E75';
+        msg.textContent=`Restored ${bk.expenses.length} expenses successfully!`;
+        setTimeout(()=>{msg.textContent='';},4000);
+      }catch(err){msg.style.color='#c0392b';msg.textContent='Error reading file.';}
+    };
+    reader.readAsText(file);
+  });
+
+  // ── CLEAR ALL ──
+  document.getElementById('btn-clear-all').addEventListener('click', async()=>{
+    if(!confirm('Are you sure? This will permanently delete ALL expenses!')) return;
+    if(!confirm('FINAL WARNING: Delete all expenses? This cannot be undone.')) return;
+    for(const e of expenses){ await deleteDoc(doc(db,'expenses',e.id)); }
+  });
+
   // ── SHARE ──
   document.getElementById('btn-wa-summary').addEventListener('click',()=>shareWhatsApp(buildSummaryText()));
   document.getElementById('btn-wa-full').addEventListener('click',()=>shareWhatsApp(buildFullReportText()));
@@ -1186,11 +1551,12 @@ window.initApp = async function(){
 };
 
 function switchTab(tab){
-  ['home','add','recurring','insights','export'].forEach(t=>{
+  ['home','add','recurring','insights','reminders','people','settings','export'].forEach(t=>{
     document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(tab==='insights') renderInsights();
+  if(tab==='people') renderPersonReport();
 }
 
 if(document.getElementById('app').style.display==='block'){ initApp(); }
