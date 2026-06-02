@@ -149,7 +149,18 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
 .budget-alert { margin:10px 14px 0; background:#FFF3CD; border:1.5px solid #FFC107; border-radius:10px; padding:10px 14px; font-size:13px; color:#856404; display:none; }
 .budget-alert.show { display:flex; align-items:center; gap:8px; }
 
-/* REMINDERS */
+/* SPLIT PAYMENT */
+.split-part { background:#f8fffe; border:1.5px solid #d0f0e4; border-radius:10px; padding:11px 12px; margin-bottom:10px; position:relative; }
+.split-part-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.split-part-title { font-size:12px; font-weight:700; color:#0F6E56; }
+.split-part-remove { background:none; border:none; color:#c0392b; font-size:16px; cursor:pointer; padding:0; line-height:1; }
+.split-part-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.split-part-row .field { margin-bottom:0; }
+.split-part-row .field label { font-size:11px; }
+.split-part-row .field input, .split-part-row .field select { padding:8px 10px; font-size:13px; }
+.split-nature-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+.split-nature-chip { padding:5px 11px; border:1.5px solid #e0e0e0; border-radius:20px; background:none; font-size:11px; color:#666; cursor:pointer; font-weight:500; }
+.split-nature-chip.active { background:#1D9E75; color:#fff; border-color:#1D9E75; }
 .rem-item { display:flex; align-items:center; gap:10px; padding:12px 14px; background:#fff; border:1.5px solid #f0f0f0; border-radius:11px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .rem-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
 .rem-info { flex:1; min-width:0; }
@@ -373,28 +384,48 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
     <div class="field"><label>Category</label><select id="inp-cat"></select></div>
     <div class="field"><label>Mode of Payment</label>
       <div class="mode-toggle">
+        <button class="mode-btn active" data-mode="single" id="add-mode-single">💳 Single</button>
+        <button class="mode-btn" data-mode="split" id="add-mode-split">✂️ Split</button>
+      </div>
+    </div>
+
+    <!-- SINGLE PAYMENT -->
+    <div id="add-single-pay">
+      <div class="mode-toggle" style="margin-bottom:10px;">
         <button class="mode-btn active" data-mode="offline" id="add-mode-offline">💵 Offline</button>
         <button class="mode-btn" data-mode="online" id="add-mode-online">📱 Online</button>
       </div>
-    </div>
-    <div class="payment-sub" id="add-offline-sub">
-      <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
-    </div>
-    <div class="payment-sub" id="add-online-sub">
-      <div class="field"><label>Nature of Payment</label>
-        <div class="nature-chips" id="add-nature-chips">
-          <button class="nature-chip active" data-nature="UPI">UPI</button>
-          <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
-          <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
+      <div class="payment-sub" id="add-offline-sub">
+        <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
+      </div>
+      <div class="payment-sub" id="add-online-sub">
+        <div class="field"><label>Nature of Payment</label>
+          <div class="nature-chips" id="add-nature-chips">
+            <button class="nature-chip active" data-nature="UPI">UPI</button>
+            <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
+            <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
+          </div>
+        </div>
+        <div class="field" id="add-bank-field" style="display:none;"><label>Bank</label>
+          <select id="add-bank">
+            <option value="Bank of Baroda">Bank of Baroda</option>
+            <option value="HDFC Bank">HDFC Bank</option>
+            <option value="American Express">American Express</option>
+          </select>
         </div>
       </div>
-      <div class="field" id="add-bank-field" style="display:none;"><label>Bank</label>
-        <select id="add-bank">
-          <option value="Bank of Baroda">Bank of Baroda</option>
-          <option value="HDFC Bank">HDFC Bank</option>
-          <option value="American Express">American Express</option>
-        </select>
+    </div>
+
+    <!-- SPLIT PAYMENT -->
+    <div id="add-split-pay" style="display:none;">
+      <div style="font-size:12px;color:#888;margin-bottom:10px;">Add each payment part separately. Total must match the amount above.</div>
+      <div id="split-parts-wrap"></div>
+      <button type="button" id="btn-add-split-part" style="width:100%;padding:9px;border:1.5px dashed #1D9E75;border-radius:9px;background:none;color:#1D9E75;font-size:13px;font-weight:bold;cursor:pointer;margin-bottom:8px;">+ Add Another Payment</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8fffe;border-radius:8px;font-size:13px;">
+        <span style="color:#555;">Split total:</span>
+        <span id="split-total-display" style="font-weight:700;color:#1D9E75;">Rs.0</span>
       </div>
+      <div id="split-balance-msg" style="font-size:12px;margin-top:4px;min-height:16px;"></div>
     </div>
     <div class="field"><label>Notes / Remarks (optional)</label><textarea id="inp-notes" placeholder="e.g. Monthly grocery run…"></textarea></div>
     <div class="field"><label>👤 Tag (Person) <span style="color:#bbb;font-weight:normal;">optional</span></label><select id="inp-tag"><option value="">— None —</option></select></div>
@@ -688,6 +719,8 @@ let db, expenses=[], customCats=[], recurringItems=[], reminders=[], persons=[],
 let filterPeriod='all', filterMode='all', filterBank='all', filterPersonPeriod='all', searchQuery='';
 let activeChart='category', editingId=null;
 let addPayMode='offline', addNature='UPI';
+let isSplitMode=false;
+let splitParts=[]; // [{mode, nature, bank, amount}]
 let editPayMode='offline', editNature='UPI';
 let recPayMode='offline', recNature='UPI';
 let recedPayMode='offline', recedNature='UPI';
@@ -833,6 +866,7 @@ function renderList(){
             <div class="exp-card-meta">
               <span class="exp-badge" style="background:${col}18;color:${col};">${e.cat}</span>
               <span class="exp-pay-badge">${pl}</span>
+              ${e.isSplit?`<span class="exp-pay-badge" style="background:#FFF3CD;color:#856404;">✂️ Split</span>`:''}
             </div>
           </div>
           <div class="exp-card-right">
@@ -1364,6 +1398,80 @@ function downloadPDF(){
   doc.save('Expense_Report_'+today()+'.pdf');
 }
 
+// ── SPLIT PAYMENT ──
+function renderSplitParts(){
+  const wrap=document.getElementById('split-parts-wrap');
+  if(!splitParts.length){
+    splitParts=[{mode:'offline',nature:'UPI',bank:'',amount:''}];
+  }
+  wrap.innerHTML=splitParts.map((p,i)=>`
+    <div class="split-part" data-idx="${i}">
+      <div class="split-part-header">
+        <span class="split-part-title">Payment ${i+1}</span>
+        ${splitParts.length>1?`<button class="split-part-remove" data-remove="${i}">×</button>`:''}
+      </div>
+      <div class="split-part-row">
+        <div class="field"><label>Amount (Rs.)</label>
+          <input type="number" class="split-amount" data-idx="${i}" placeholder="0" min="0" step="1" inputmode="numeric" value="${p.amount||''}" />
+        </div>
+        <div class="field"><label>Mode</label>
+          <select class="split-mode-sel" data-idx="${i}">
+            <option value="offline"${p.mode==='offline'?' selected':''}>💵 Cash</option>
+            <option value="upi"${p.mode==='upi'?' selected':''}>📱 UPI</option>
+            <option value="debit"${p.mode==='debit'?' selected':''}>💳 Debit Card</option>
+            <option value="credit"${p.mode==='credit'?' selected':''}>💳 Credit Card</option>
+          </select>
+        </div>
+      </div>
+      ${(p.mode==='credit'||p.mode==='debit')?`
+      <div class="field" style="margin-bottom:6px;"><label>Bank</label>
+        <select class="split-bank-sel" data-idx="${i}">
+          <option value="Bank of Baroda"${p.bank==='Bank of Baroda'?' selected':''}>Bank of Baroda</option>
+          <option value="HDFC Bank"${p.bank==='HDFC Bank'?' selected':''}>HDFC Bank</option>
+          <option value="American Express"${p.bank==='American Express'?' selected':''}>American Express</option>
+        </select>
+      </div>`:''}
+    </div>`).join('');
+  updateSplitTotal();
+}
+
+function updateSplitTotal(){
+  const total=splitParts.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const mainAmt=parseFloat(document.getElementById('inp-amount').value)||0;
+  document.getElementById('split-total-display').textContent='Rs.'+Math.round(total).toLocaleString('en-IN');
+  const balMsg=document.getElementById('split-balance-msg');
+  if(mainAmt>0){
+    const diff=mainAmt-total;
+    if(Math.abs(diff)<0.01){ balMsg.style.color='#1D9E75'; balMsg.textContent='✅ Split total matches amount perfectly!'; }
+    else if(diff>0){ balMsg.style.color='#BA7517'; balMsg.textContent=`⚠️ Rs.${Math.round(diff).toLocaleString('en-IN')} still unallocated`; }
+    else { balMsg.style.color='#c0392b'; balMsg.textContent=`❌ Split exceeds amount by Rs.${Math.round(Math.abs(diff)).toLocaleString('en-IN')}`; }
+  } else { balMsg.textContent=''; }
+}
+
+function wireSplitParts(){
+  const wrap=document.getElementById('split-parts-wrap');
+  wrap.addEventListener('input', e=>{
+    const amtInp=e.target.closest('.split-amount');
+    const modeSel=e.target.closest('.split-mode-sel');
+    const bankSel=e.target.closest('.split-bank-sel');
+    if(amtInp){ splitParts[+amtInp.dataset.idx].amount=amtInp.value; updateSplitTotal(); }
+    if(modeSel){ splitParts[+modeSel.dataset.idx].mode=modeSel.value; renderSplitParts(); wireSplitParts(); }
+    if(bankSel){ splitParts[+bankSel.dataset.idx].bank=bankSel.value; }
+  });
+  wrap.addEventListener('click', e=>{
+    const removeBtn=e.target.closest('[data-remove]');
+    if(removeBtn){ splitParts.splice(+removeBtn.dataset.remove,1); renderSplitParts(); wireSplitParts(); }
+  });
+}
+
+function splitModeLabel(mode){
+  if(mode==='offline') return 'Cash';
+  if(mode==='upi') return 'UPI';
+  if(mode==='debit') return 'Debit Card';
+  if(mode==='credit') return 'Credit Card';
+  return mode;
+}
+
 // ── FIREBASE INIT ──
 window.initApp = async function(){
   const fbApp=initializeApp(firebaseConfig);
@@ -1414,28 +1522,70 @@ window.initApp = async function(){
     await setDoc(doc(db,'settings','data'),{customCats,monthlyBudget,persons});
   }
 
-  // ── ADD EXPENSE ──
+  // ── SINGLE / SPLIT TOGGLE ──
+  document.getElementById('add-mode-single').addEventListener('click',()=>{
+    isSplitMode=false;
+    document.getElementById('add-mode-single').classList.add('active');
+    document.getElementById('add-mode-split').classList.remove('active');
+    document.getElementById('add-single-pay').style.display='block';
+    document.getElementById('add-split-pay').style.display='none';
+  });
+  document.getElementById('add-mode-split').addEventListener('click',()=>{
+    isSplitMode=true;
+    document.getElementById('add-mode-split').classList.add('active');
+    document.getElementById('add-mode-single').classList.remove('active');
+    document.getElementById('add-single-pay').style.display='none';
+    document.getElementById('add-split-pay').style.display='block';
+    splitParts=[{mode:'offline',nature:'UPI',bank:'',amount:''}];
+    renderSplitParts(); wireSplitParts();
+  });
+  document.getElementById('btn-add-split-part').addEventListener('click',()=>{
+    splitParts.push({mode:'offline',nature:'UPI',bank:'',amount:''});
+    renderSplitParts(); wireSplitParts();
+  });
+  document.getElementById('inp-amount').addEventListener('input', ()=>{ if(isSplitMode) updateSplitTotal(); });
   document.getElementById('btn-add').addEventListener('click', async()=>{
     const desc=document.getElementById('inp-desc').value.trim();
     const amount=parseFloat(document.getElementById('inp-amount').value);
     const cat=document.getElementById('inp-cat').value;
     const date=document.getElementById('inp-date').value;
     const notes=document.getElementById('inp-notes').value.trim();
+    const tag=document.getElementById('inp-tag').value;
     const err=document.getElementById('err-msg');
     if(!desc){err.textContent='Please enter a description.';return;}
     if(!amount||amount<=0){err.textContent='Please enter a valid amount.';return;}
     if(!date){err.textContent='Please select a date.';return;}
     if(date>today()){err.textContent='Future date not allowed.';return;}
     err.textContent='';
-    const bank=(addPayMode==='online'&&(addNature==='Credit Card'||addNature==='Debit Card'))?document.getElementById('add-bank').value:'';
-    const tag=document.getElementById('inp-tag').value;
-    await addDoc(collection(db,'expenses'),{desc,amount,cat,date,notes,payMode:addPayMode,nature:addPayMode==='online'?addNature:'',bank,tag});
+
+    if(isSplitMode){
+      const splitTotal=splitParts.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+      if(splitParts.some(p=>!(parseFloat(p.amount)>0))){err.textContent='Each split part must have an amount.';return;}
+      if(Math.abs(splitTotal-amount)>0.5){err.textContent=`Split total (Rs.${Math.round(splitTotal).toLocaleString('en-IN')}) must equal amount (Rs.${Math.round(amount).toLocaleString('en-IN')}).`;return;}
+      const splitLabels=splitParts.map(p=>`${splitModeLabel(p.mode)} Rs.${Math.round(parseFloat(p.amount)).toLocaleString('en-IN')}`).join(' + ');
+      for(const p of splitParts){
+        const partPayMode=p.mode==='offline'?'offline':'online';
+        const partNature=p.mode==='upi'?'UPI':p.mode==='debit'?'Debit Card':p.mode==='credit'?'Credit Card':'';
+        const partBank=(p.mode==='credit'||p.mode==='debit')?p.bank:'';
+        await addDoc(collection(db,'expenses'),{
+          desc, amount:parseFloat(p.amount), cat, date, tag,
+          notes: notes?`${notes} [Split: ${splitLabels}]`:`Split: ${splitLabels}`,
+          payMode:partPayMode, nature:partNature, bank:partBank,
+          isSplit:true, splitTotal:amount
+        });
+      }
+    } else {
+      const bank=(addPayMode==='online'&&(addNature==='Credit Card'||addNature==='Debit Card'))?document.getElementById('add-bank').value:'';
+      await addDoc(collection(db,'expenses'),{desc,amount,cat,date,notes,payMode:addPayMode,nature:addPayMode==='online'?addNature:'',bank,tag});
+    }
+
     document.getElementById('inp-desc').value='';
     document.getElementById('inp-amount').value='';
     document.getElementById('inp-notes').value='';
     document.getElementById('inp-date').value=today();
     document.getElementById('inp-date').max=today();
-    // Switch to home to see the new entry
+    splitParts=[];
+    if(isSplitMode){ renderSplitParts(); wireSplitParts(); }
     switchTab('home');
   });
 
