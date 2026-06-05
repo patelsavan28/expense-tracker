@@ -337,6 +337,23 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
 
   <div class="budget-alert" id="budget-alert">⚠️ <span id="budget-alert-text"></span></div>
 
+  <!-- CREDIT CARD SUMMARY -->
+  <div id="cc-summary-wrap" style="display:none; margin:10px 14px 0;">
+    <div style="background:#fff;border-radius:12px;padding:14px 15px;box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:13px;font-weight:700;color:#D4537E;">💳 Credit Card Outstanding</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="filter-chip active" data-ccperiod="current" id="cc-period-current" style="font-size:11px;padding:3px 10px;">This month</button>
+          <button class="filter-chip" data-ccperiod="last" id="cc-period-last" style="font-size:11px;padding:3px 10px;">Last month</button>
+        </div>
+      </div>
+      <div id="cc-summary-body"></div>
+      <div style="font-size:11px;color:#aaa;margin-top:10px;line-height:1.5;">
+        💡 These are your credit card spends. Your bill arrives next month for this amount. No need to re-add the bill payment.
+      </div>
+    </div>
+  </div>
+
   <div class="section">
     <div class="section-title">📋 Expenses</div>
     <!-- Search -->
@@ -1258,6 +1275,71 @@ function buildPersonList(){
   ).join('');
 }
 
+let ccPeriod='current';
+
+function renderCCSummary(){
+  const now=new Date();
+  let m, y;
+  if(ccPeriod==='current'){ m=now.getMonth(); y=now.getFullYear(); }
+  else {
+    m=now.getMonth()-1; y=now.getFullYear();
+    if(m<0){m=11; y--;}
+  }
+
+  const ccExp=expenses.filter(e=>{
+    const d=new Date(e.date);
+    return e.nature==='Credit Card' && d.getMonth()===m && d.getFullYear()===y;
+  });
+
+  const wrap=document.getElementById('cc-summary-wrap');
+  if(!ccExp.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+
+  // Group by bank
+  const banks={};
+  ccExp.forEach(e=>{
+    const b=e.bank||'Unknown Bank';
+    if(!banks[b]) banks[b]={total:0,count:0,items:[]};
+    banks[b].total+=e.amount;
+    banks[b].count++;
+    banks[b].items.push(e);
+  });
+
+  const grandTotal=ccExp.reduce((s,e)=>s+e.amount,0);
+  const mLabel=new Date(y,m,1).toLocaleString('default',{month:'long',year:'numeric'});
+  const bankColors={'Bank of Baroda':'#1D9E75','HDFC Bank':'#378ADD','American Express':'#D4537E','Unknown Bank':'#888'};
+
+  // Due date estimate (most banks bill by 5th-10th of next month)
+  const nextM=m===11?0:m+1;
+  const nextY=m===11?y+1:y;
+  const dueLabel=new Date(nextY,nextM,1).toLocaleString('default',{month:'long',year:'numeric'});
+
+  let html=`<div style="font-size:12px;color:#888;margin-bottom:10px;">Period: ${mLabel} · Bill expected in ${dueLabel}</div>`;
+
+  Object.entries(banks).sort((a,b)=>b[1].total-a[1].total).forEach(([bank,data])=>{
+    const col=bankColors[bank]||'#888';
+    const pct=Math.round((data.total/grandTotal)*100);
+    html+=`<div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:13px;font-weight:700;color:${col};">💳 ${bank}</span>
+        <span style="font-size:14px;font-weight:700;color:${col};">${fmt(Math.round(data.total))}</span>
+      </div>
+      <div style="background:#f0f0f0;border-radius:6px;height:8px;overflow:hidden;margin-bottom:4px;">
+        <div style="width:${pct}%;height:100%;background:${col};border-radius:6px;"></div>
+      </div>
+      <div style="font-size:11px;color:#aaa;">${data.count} transaction${data.count>1?'s':''} · ${pct}% of total CC spend</div>
+    </div>`;
+  });
+
+  // Grand total row
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FFF0F6;border-radius:9px;border:1.5px solid #F5C0D8;margin-top:4px;">
+    <span style="font-size:13px;font-weight:700;color:#D4537E;">Total Bill Amount</span>
+    <span style="font-size:16px;font-weight:700;color:#D4537E;">${fmt(Math.round(grandTotal))}</span>
+  </div>`;
+
+  document.getElementById('cc-summary-body').innerHTML=html;
+}
+
 // Budget Alert
 function checkBudgetAlert(){
   const alert=document.getElementById('budget-alert');
@@ -1314,7 +1396,7 @@ function buildFullReportText(){
 function shareWhatsApp(text){ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank'); }
 function shareEmail(subject,body){ window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank'); }
 
-function render(){ renderMetrics(); renderList(); renderChart(); checkBudgetAlert(); if(document.getElementById('tab-insights').style.display==='block') renderInsights(); }
+function render(){ renderMetrics(); renderList(); renderChart(); checkBudgetAlert(); renderCCSummary(); if(document.getElementById('tab-insights').style.display==='block') renderInsights(); }
 
 // ── EDIT MODAL ──
 function openEditModal(e){
@@ -1521,6 +1603,20 @@ window.initApp = async function(){
   async function saveSettings(){
     await setDoc(doc(db,'settings','data'),{customCats,monthlyBudget,persons});
   }
+
+  // ── CC SUMMARY PERIOD TOGGLE ──
+  document.getElementById('cc-period-current').addEventListener('click',()=>{
+    ccPeriod='current';
+    document.getElementById('cc-period-current').classList.add('active');
+    document.getElementById('cc-period-last').classList.remove('active');
+    renderCCSummary();
+  });
+  document.getElementById('cc-period-last').addEventListener('click',()=>{
+    ccPeriod='last';
+    document.getElementById('cc-period-last').classList.add('active');
+    document.getElementById('cc-period-current').classList.remove('active');
+    renderCCSummary();
+  });
 
   // ── SINGLE / SPLIT TOGGLE ──
   document.getElementById('add-mode-single').addEventListener('click',()=>{
