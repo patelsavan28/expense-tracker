@@ -523,6 +523,24 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
       <label>Weight (grams) optional</label>
       <input type="number" id="inv-gold-grams" placeholder="e.g. 10" min="0" step="0.01" inputmode="decimal" />
     </div>
+    <div class="field"><label>Payment Mode</label>
+      <div class="nature-chips" id="inv-pay-chips" style="flex-wrap:wrap;">
+        <button class="nature-chip active" data-invpay="Bank Mandate">🏦 Bank Mandate</button>
+        <button class="nature-chip" data-invpay="UPI">📱 UPI</button>
+        <button class="nature-chip" data-invpay="Net Banking">🌐 Net Banking</button>
+        <button class="nature-chip" data-invpay="Debit Card">💳 Debit Card</button>
+        <button class="nature-chip" data-invpay="Credit Card">💳 Credit Card</button>
+        <button class="nature-chip" data-invpay="Cash">💵 Cash</button>
+      </div>
+    </div>
+    <div class="field" id="inv-bank-field">
+      <label>Bank Account</label>
+      <select id="inv-bank">
+        <option value="Bank of Baroda">Bank of Baroda</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+        <option value="American Express">American Express</option>
+      </select>
+    </div>
     <div class="field"><label>Notes (optional)</label><input type="text" id="inv-notes" placeholder="e.g. Monthly SIP, SGB tranche 2…" /></div>
     <div class="err" id="err-inv"></div>
     <button class="btn btn-green" id="btn-add-inv" style="background:#378ADD;">+ Add Investment</button>
@@ -547,6 +565,23 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
       <button class="filter-chip" data-invtype="NPS">NPS</button>
       <button class="filter-chip" data-invtype="RD">RD</button>
       <button class="filter-chip" data-invtype="Other">Other</button>
+    </div>
+    <div class="filter-section-label">Payment Mode</div>
+    <div class="filter-scroll" id="inv-filter-pay">
+      <button class="filter-chip active" data-invpayfilter="all">All</button>
+      <button class="filter-chip" data-invpayfilter="Bank Mandate">Bank Mandate</button>
+      <button class="filter-chip" data-invpayfilter="UPI">UPI</button>
+      <button class="filter-chip" data-invpayfilter="Net Banking">Net Banking</button>
+      <button class="filter-chip" data-invpayfilter="Debit Card">Debit Card</button>
+      <button class="filter-chip" data-invpayfilter="Credit Card">Credit Card</button>
+      <button class="filter-chip" data-invpayfilter="Cash">Cash</button>
+    </div>
+    <div class="filter-section-label">Bank</div>
+    <div class="filter-scroll" id="inv-filter-bank">
+      <button class="filter-chip active" data-invbank="all">All Banks</button>
+      <button class="filter-chip" data-invbank="Bank of Baroda">Bank of Baroda</button>
+      <button class="filter-chip" data-invbank="HDFC Bank">HDFC Bank</button>
+      <button class="filter-chip" data-invbank="American Express">American Express</button>
     </div>
     <div id="inv-list-wrap"><div class="loading">Loading…</div></div>
   </div>
@@ -1586,7 +1621,7 @@ function downloadPDF(){
 // ── INVESTMENTS ──
 const INV_ICONS={SIP:'📈','Lumpsum MF':'💰',Gold:'🥇',Stocks:'📊',FD:'🏦',PPF:'📋',NPS:'🏛️',RD:'💵',Other:'📌'};
 const INV_COLORS={SIP:'#378ADD','Lumpsum MF':'#7F77DD',Gold:'#BA7517',Stocks:'#1D9E75',FD:'#0F6E56',PPF:'#639922',NPS:'#534AB7',RD:'#D4537E',Other:'#888780'};
-let investments=[], invFilterPeriod='all', invFilterType='all', invType='SIP';
+let investments=[], invFilterPeriod='all', invFilterType='all', invFilterPay='all', invFilterBank='all', invType='SIP', invPayMode='Bank Mandate';
 
 function filteredInvestments(){
   const now=new Date();
@@ -1597,6 +1632,8 @@ function filteredInvestments(){
     return true;
   });
   if(invFilterType!=='all') list=list.filter(e=>e.type===invFilterType);
+  if(invFilterPay!=='all') list=list.filter(e=>e.payMode===invFilterPay);
+  if(invFilterBank!=='all') list=list.filter(e=>e.bank===invFilterBank);
   return list;
 }
 
@@ -1625,11 +1662,13 @@ function renderInvList(){
   const total=sorted.reduce((s,e)=>s+e.amount,0);
   wrap.innerHTML=sorted.map(e=>{
     const col=INV_COLORS[e.type]||'#888';
+    const payIcon={UPI:'📱','Bank Mandate':'🏦','Net Banking':'🌐','Debit Card':'💳','Credit Card':'💳',Cash:'💵'}[e.payMode]||'💳';
     return `<div class="inv-card">
       <div class="inv-icon" style="background:${col}18;">${INV_ICONS[e.type]||'📌'}</div>
       <div class="inv-body">
         <div class="inv-desc">${e.desc}</div>
         <div class="inv-meta">${e.type} · ${e.date}${e.grams?` · ${e.grams}g`:''}${e.notes?' · '+e.notes:''}</div>
+        ${e.payMode?`<div style="margin-top:3px;"><span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#EEF4FF;color:#3060CC;font-weight:600;">${payIcon} ${e.payMode}${e.bank?' · '+e.bank:''}</span></div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
         <div class="inv-amount">${fmt(Math.round(e.amount))}</div>
@@ -1826,19 +1865,31 @@ window.initApp = async function(){
     });
   });
 
+  // Investment payment mode chips
+  document.querySelectorAll('#inv-pay-chips .nature-chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('#inv-pay-chips .nature-chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active'); invPayMode=c.dataset.invpay;
+      // Show bank field for Bank Mandate, Debit Card, Credit Card, Net Banking
+      const showBank=['Bank Mandate','Debit Card','Credit Card','Net Banking'].includes(invPayMode);
+      document.getElementById('inv-bank-field').style.display=showBank?'block':'none';
+    });
+  });
+
   document.getElementById('btn-add-inv').addEventListener('click', async()=>{
     const desc=document.getElementById('inv-desc').value.trim();
     const amount=parseFloat(document.getElementById('inv-amount').value);
     const date=document.getElementById('inv-date').value;
     const notes=document.getElementById('inv-notes').value.trim();
     const grams=invType==='Gold'?parseFloat(document.getElementById('inv-gold-grams').value)||0:0;
+    const bank=['Bank Mandate','Debit Card','Credit Card','Net Banking'].includes(invPayMode)?document.getElementById('inv-bank').value:'';
     const err=document.getElementById('err-inv');
     if(!desc){err.textContent='Please enter a name.';return;}
     if(!amount||amount<=0){err.textContent='Please enter a valid amount.';return;}
     if(!date){err.textContent='Please select a date.';return;}
     if(date>today()){err.textContent='Future date not allowed.';return;}
     err.textContent='';
-    await addDoc(collection(db,'investments'),{desc,amount,type:invType,date,notes,grams});
+    await addDoc(collection(db,'investments'),{desc,amount,type:invType,date,notes,grams,payMode:invPayMode,bank});
     document.getElementById('inv-desc').value='';
     document.getElementById('inv-amount').value='';
     document.getElementById('inv-notes').value='';
@@ -1862,6 +1913,18 @@ window.initApp = async function(){
     const btn=e.target.closest('.filter-chip'); if(!btn) return;
     document.querySelectorAll('#inv-filter-type .filter-chip').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active'); invFilterType=btn.dataset.invtype; renderInvList(); renderInvChart();
+  });
+
+  document.getElementById('inv-filter-pay').addEventListener('click', e=>{
+    const btn=e.target.closest('.filter-chip'); if(!btn) return;
+    document.querySelectorAll('#inv-filter-pay .filter-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); invFilterPay=btn.dataset.invpayfilter; renderInvList();
+  });
+
+  document.getElementById('inv-filter-bank').addEventListener('click', e=>{
+    const btn=e.target.closest('.filter-chip'); if(!btn) return;
+    document.querySelectorAll('#inv-filter-bank .filter-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); invFilterBank=btn.dataset.invbank; renderInvList();
   });
 
   // ── CC SUMMARY PERIOD TOGGLE ──
