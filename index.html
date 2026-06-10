@@ -794,10 +794,17 @@ const SESSION_KEY='exp_unlocked';
 function isUnlocked(){ const v=localStorage.getItem(SESSION_KEY); return v&&Date.now()<parseInt(v); }
 function unlock(){ localStorage.setItem(SESSION_KEY,(Date.now()+7*24*60*60*1000).toString()); document.getElementById('lock-screen').style.display='none'; document.getElementById('app').style.display='block'; }
 function lock(){ localStorage.removeItem(SESSION_KEY); location.reload(); }
-if(isUnlocked()){ document.getElementById('lock-screen').style.display='none'; document.getElementById('app').style.display='block'; }
+window._appShouldInit = false;
+window._appReady = false;
+if(isUnlocked()){ document.getElementById('lock-screen').style.display='none'; document.getElementById('app').style.display='block'; window._appShouldInit=true; }
 document.getElementById('pwd-btn').addEventListener('click',()=>{
   const v=document.getElementById('pwd-input').value;
-  if(v===CORRECT_PASSWORD){ document.getElementById('lock-err').textContent=''; unlock(); initApp(); }
+  if(v===CORRECT_PASSWORD){
+    document.getElementById('lock-err').textContent='';
+    unlock();
+    if(window._appReady && window.initApp) window.initApp();
+    else window._appShouldInit=true;
+  }
   else{ document.getElementById('lock-err').textContent='Wrong password.'; document.getElementById('pwd-input').value=''; }
 });
 document.getElementById('pwd-input').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('pwd-btn').click(); });
@@ -2247,7 +2254,9 @@ function switchTab(tab){
   if(tab==='invest') renderInvestTab();
 }
 
-if(document.getElementById('app').style.display==='block'){ initApp(); }
+// Signal module is ready, init if needed
+window._appReady = true;
+if(window._appShouldInit){ window.initApp(); }
 </script>
 </body>
 </html>
