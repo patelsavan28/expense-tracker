@@ -314,6 +314,56 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
   </div>
 </div>
 
+<!-- EDIT INVESTMENT MODAL -->
+<div class="modal-overlay" id="inv-edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Investment <button class="modal-close" id="inv-modal-close">×</button></div>
+    <div class="field"><label>Name / Description</label><input type="text" id="inved-desc" /></div>
+    <div class="row2">
+      <div class="field"><label>Amount (Rs.)</label><input type="number" id="inved-amount" min="0" step="1" inputmode="numeric" /></div>
+      <div class="field"><label>Date</label><input type="date" id="inved-date" /></div>
+    </div>
+    <div class="field"><label>Type</label>
+      <div class="nature-chips" id="inved-type-chips" style="flex-wrap:wrap;">
+        <button class="nature-chip active" data-invedtype="SIP">📈 SIP</button>
+        <button class="nature-chip" data-invedtype="Lumpsum MF">💰 Lumpsum MF</button>
+        <button class="nature-chip" data-invedtype="Gold">🥇 Gold</button>
+        <button class="nature-chip" data-invedtype="Stocks">📊 Stocks</button>
+        <button class="nature-chip" data-invedtype="FD">🏦 FD</button>
+        <button class="nature-chip" data-invedtype="PPF">📋 PPF</button>
+        <button class="nature-chip" data-invedtype="NPS">🏛️ NPS</button>
+        <button class="nature-chip" data-invedtype="RD">💵 RD</button>
+        <button class="nature-chip" data-invedtype="Other">📌 Other</button>
+      </div>
+    </div>
+    <div class="field" id="inved-gold-field" style="display:none;">
+      <label>Weight (grams) optional</label>
+      <input type="number" id="inved-gold-grams" placeholder="e.g. 10" min="0" step="0.01" inputmode="decimal" />
+    </div>
+    <div class="field"><label>Payment Mode</label>
+      <div class="nature-chips" id="inved-pay-chips" style="flex-wrap:wrap;">
+        <button class="nature-chip active" data-invedpay="Bank Mandate">🏦 Bank Mandate</button>
+        <button class="nature-chip" data-invedpay="UPI">📱 UPI</button>
+        <button class="nature-chip" data-invedpay="Net Banking">🌐 Net Banking</button>
+        <button class="nature-chip" data-invedpay="Debit Card">💳 Debit Card</button>
+        <button class="nature-chip" data-invedpay="Credit Card">💳 Credit Card</button>
+        <button class="nature-chip" data-invedpay="Cash">💵 Cash</button>
+      </div>
+    </div>
+    <div class="field" id="inved-bank-field">
+      <label>Bank Account</label>
+      <select id="inved-bank">
+        <option value="Bank of Baroda">Bank of Baroda</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+        <option value="American Express">American Express</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes (optional)</label><input type="text" id="inved-notes" /></div>
+    <div class="err" id="inved-err"></div>
+    <button class="btn btn-green" id="btn-save-inv-edit" style="background:#378ADD;margin-top:8px;">Save Changes</button>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app">
 <div class="topbar">
@@ -1621,7 +1671,7 @@ function downloadPDF(){
 // ── INVESTMENTS ──
 const INV_ICONS={SIP:'📈','Lumpsum MF':'💰',Gold:'🥇',Stocks:'📊',FD:'🏦',PPF:'📋',NPS:'🏛️',RD:'💵',Other:'📌'};
 const INV_COLORS={SIP:'#378ADD','Lumpsum MF':'#7F77DD',Gold:'#BA7517',Stocks:'#1D9E75',FD:'#0F6E56',PPF:'#639922',NPS:'#534AB7',RD:'#D4537E',Other:'#888780'};
-let investments=[], invFilterPeriod='all', invFilterType='all', invFilterPay='all', invFilterBank='all', invType='SIP', invPayMode='Bank Mandate';
+let investments=[], invFilterPeriod='all', invFilterType='all', invFilterPay='all', invFilterBank='all', invType='SIP', invPayMode='Bank Mandate', editingInvId=null, invedType='SIP', invedPayMode='Bank Mandate';
 
 function filteredInvestments(){
   const now=new Date();
@@ -1672,7 +1722,10 @@ function renderInvList(){
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
         <div class="inv-amount">${fmt(Math.round(e.amount))}</div>
-        <button class="inv-del" data-invid="${e.id}">🗑</button>
+        <div style="display:flex;gap:5px;">
+          <button class="exp-edit-btn inv-edit-btn" data-invid="${e.id}" style="background:#FFF8E1;border:none;color:#BA7517;font-size:13px;padding:5px 7px;border-radius:7px;cursor:pointer;">✏️</button>
+          <button class="inv-del" data-invid="${e.id}">🗑</button>
+        </div>
       </div>
     </div>`;
   }).join('')+`<div class="inv-total-bar"><span style="font-size:12px;font-weight:600;color:#185FA5;">Total · ${filtered.length} entries</span><span style="font-size:16px;font-weight:700;color:#378ADD;">${fmt(Math.round(total))}</span></div>`;
@@ -1897,10 +1950,83 @@ window.initApp = async function(){
     document.getElementById('inv-date').value=today();
   });
 
+  // ── INVESTMENT EDIT ──
+  function openInvEditModal(inv){
+    editingInvId=inv.id;
+    document.getElementById('inved-desc').value=inv.desc||'';
+    document.getElementById('inved-amount').value=inv.amount||'';
+    document.getElementById('inved-date').value=inv.date||today();
+    document.getElementById('inved-date').max=today();
+    document.getElementById('inved-notes').value=inv.notes||'';
+    document.getElementById('inved-gold-grams').value=inv.grams||'';
+
+    // Set type chips
+    invedType=inv.type||'SIP';
+    document.querySelectorAll('#inved-type-chips .nature-chip').forEach(c=>c.classList.toggle('active',c.dataset.invedtype===invedType));
+    document.getElementById('inved-gold-field').style.display=invedType==='Gold'?'block':'none';
+
+    // Set payment chips
+    invedPayMode=inv.payMode||'Bank Mandate';
+    document.querySelectorAll('#inved-pay-chips .nature-chip').forEach(c=>c.classList.toggle('active',c.dataset.invedpay===invedPayMode));
+    const showBank=['Bank Mandate','Debit Card','Credit Card','Net Banking'].includes(invedPayMode);
+    document.getElementById('inved-bank-field').style.display=showBank?'block':'none';
+    if(inv.bank) document.getElementById('inved-bank').value=inv.bank;
+
+    document.getElementById('inved-err').textContent='';
+    document.getElementById('inv-edit-modal').classList.add('show');
+  }
+
+  // Wire type chips in edit modal
+  document.querySelectorAll('#inved-type-chips .nature-chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('#inved-type-chips .nature-chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active'); invedType=c.dataset.invedtype;
+      document.getElementById('inved-gold-field').style.display=invedType==='Gold'?'block':'none';
+    });
+  });
+
+  // Wire payment chips in edit modal
+  document.querySelectorAll('#inved-pay-chips .nature-chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('#inved-pay-chips .nature-chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active'); invedPayMode=c.dataset.invedpay;
+      const showBank=['Bank Mandate','Debit Card','Credit Card','Net Banking'].includes(invedPayMode);
+      document.getElementById('inved-bank-field').style.display=showBank?'block':'none';
+    });
+  });
+
+  document.getElementById('btn-save-inv-edit').addEventListener('click', async()=>{
+    const desc=document.getElementById('inved-desc').value.trim();
+    const amount=parseFloat(document.getElementById('inved-amount').value);
+    const date=document.getElementById('inved-date').value;
+    const notes=document.getElementById('inved-notes').value.trim();
+    const grams=invedType==='Gold'?parseFloat(document.getElementById('inved-gold-grams').value)||0:0;
+    const bank=['Bank Mandate','Debit Card','Credit Card','Net Banking'].includes(invedPayMode)?document.getElementById('inved-bank').value:'';
+    const err=document.getElementById('inved-err');
+    if(!desc){err.textContent='Please enter a name.';return;}
+    if(!amount||amount<=0){err.textContent='Please enter a valid amount.';return;}
+    if(!date){err.textContent='Please select a date.';return;}
+    if(date>today()){err.textContent='Future date not allowed.';return;}
+    err.textContent='';
+    await updateDoc(doc(db,'investments',editingInvId),{desc,amount,type:invedType,date,notes,grams,payMode:invedPayMode,bank});
+    document.getElementById('inv-edit-modal').classList.remove('show');
+    editingInvId=null;
+  });
+
+  document.getElementById('inv-modal-close').addEventListener('click',()=>document.getElementById('inv-edit-modal').classList.remove('show'));
+
+  // Investment list click — edit + delete
   document.getElementById('inv-list-wrap').addEventListener('click', async e=>{
-    const btn=e.target.closest('.inv-del'); if(!btn) return;
-    if(!confirm('Delete this investment?')) return;
-    await deleteDoc(doc(db,'investments',btn.dataset.invid));
+    const editBtn=e.target.closest('.inv-edit-btn');
+    const delBtn=e.target.closest('.inv-del');
+    if(editBtn){
+      const inv=investments.find(x=>x.id===editBtn.dataset.invid);
+      if(inv) openInvEditModal(inv);
+    }
+    if(delBtn&&!editBtn){
+      if(!confirm('Delete this investment?')) return;
+      await deleteDoc(doc(db,'investments',delBtn.dataset.invid));
+    }
   });
 
   document.getElementById('inv-filter-period').addEventListener('click', e=>{
