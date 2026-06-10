@@ -941,8 +941,6 @@ function renderMetrics(){
   const mo=expenses.filter(e=>{const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,e)=>s+e.amount,0);
   const yr=expenses.filter(e=>new Date(e.date).getFullYear()===now.getFullYear()).reduce((s,e)=>s+e.amount,0);
   document.getElementById('m-month').textContent=fmt(mo);
-  document.getElementById('m-year').textContent=fmt(yr);
-  document.getElementById('m-count').textContent=expenses.length;
   const ct={};expenses.forEach(e=>{ct[e.cat]=(ct[e.cat]||0)+e.amount;});
   const top=Object.entries(ct).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('m-top').textContent=top?top[0]:'—';
@@ -2254,9 +2252,10 @@ function switchTab(tab){
   if(tab==='invest') renderInvestTab();
 }
 
-// Signal module is ready, init if needed
+// Always call initApp at end of module — app div visibility controls whether it runs meaningfully
 window._appReady = true;
-if(window._appShouldInit){ window.initApp(); }
+window._appShouldInit = false; // reset since we're calling directly
+window.initApp();
 </script>
 </body>
 </html>
