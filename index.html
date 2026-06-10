@@ -243,29 +243,20 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
     </div>
     <div class="field"><label>Category</label><select id="edit-cat"></select></div>
     <div class="field"><label>Mode of Payment</label>
-      <div class="mode-toggle">
-        <button class="mode-btn active" data-mode="offline" id="edit-mode-offline">💵 Offline</button>
-        <button class="mode-btn" data-mode="online" id="edit-mode-online">📱 Online</button>
+      <div class="nature-chips" id="edit-pay-chips" style="flex-wrap:wrap;">
+        <button class="nature-chip active" data-editpay="Cash">💵 Cash</button>
+        <button class="nature-chip" data-editpay="UPI">📱 UPI</button>
+        <button class="nature-chip" data-editpay="Net Banking">🌐 Net Banking</button>
+        <button class="nature-chip" data-editpay="Debit Card">💳 Debit Card</button>
+        <button class="nature-chip" data-editpay="Credit Card">💳 Credit Card</button>
       </div>
     </div>
-    <div class="payment-sub" id="edit-offline-sub">
-      <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
-    </div>
-    <div class="payment-sub" id="edit-online-sub">
-      <div class="field"><label>Nature of Payment</label>
-        <div class="nature-chips" id="edit-nature-chips">
-          <button class="nature-chip active" data-nature="UPI">UPI</button>
-          <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
-          <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
-        </div>
-      </div>
-      <div class="field" id="edit-bank-field" style="display:none;"><label>Bank</label>
-        <select id="edit-bank">
-          <option value="Bank of Baroda">Bank of Baroda</option>
-          <option value="HDFC Bank">HDFC Bank</option>
-          <option value="American Express">American Express</option>
-        </select>
-      </div>
+    <div class="field" id="edit-bank-field" style="display:none;"><label>Bank</label>
+      <select id="edit-bank">
+        <option value="Bank of Baroda">Bank of Baroda</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+        <option value="American Express">American Express</option>
+      </select>
     </div>
     <div class="field"><label>Notes / Remarks</label><textarea id="edit-notes" placeholder="Optional notes…"></textarea></div>
     <div class="field"><label>👤 Tag (Person)</label><select id="edit-tag"><option value="">— None —</option></select></div>
@@ -284,29 +275,20 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
       <div class="field"><label>Category</label><select id="reced-cat"></select></div>
     </div>
     <div class="field"><label>Mode of Payment</label>
-      <div class="mode-toggle">
-        <button class="mode-btn active" data-mode="offline" id="reced-mode-offline">💵 Offline</button>
-        <button class="mode-btn" data-mode="online" id="reced-mode-online">📱 Online</button>
+      <div class="nature-chips" id="reced-pay-chips" style="flex-wrap:wrap;">
+        <button class="nature-chip active" data-recedpay="Cash">💵 Cash</button>
+        <button class="nature-chip" data-recedpay="UPI">📱 UPI</button>
+        <button class="nature-chip" data-recedpay="Net Banking">🌐 Net Banking</button>
+        <button class="nature-chip" data-recedpay="Debit Card">💳 Debit Card</button>
+        <button class="nature-chip" data-recedpay="Credit Card">💳 Credit Card</button>
       </div>
     </div>
-    <div class="payment-sub" id="reced-offline-sub">
-      <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
-    </div>
-    <div class="payment-sub" id="reced-online-sub">
-      <div class="field"><label>Nature of Payment</label>
-        <div class="nature-chips" id="reced-nature-chips">
-          <button class="nature-chip active" data-nature="UPI">UPI</button>
-          <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
-          <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
-        </div>
-      </div>
-      <div class="field" id="reced-bank-field" style="display:none;"><label>Bank</label>
-        <select id="reced-bank">
-          <option value="Bank of Baroda">Bank of Baroda</option>
-          <option value="HDFC Bank">HDFC Bank</option>
-          <option value="American Express">American Express</option>
-        </select>
-      </div>
+    <div class="field" id="reced-bank-field" style="display:none;"><label>Bank</label>
+      <select id="reced-bank">
+        <option value="Bank of Baroda">Bank of Baroda</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+        <option value="American Express">American Express</option>
+      </select>
     </div>
     <div class="field"><label>Notes (optional)</label><textarea id="reced-notes" placeholder="Optional notes…"></textarea></div>
     <div class="err" id="reced-err"></div>
@@ -436,11 +418,11 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
     <div class="filter-section-label">Payment Mode</div>
     <div class="filter-scroll" id="filter-mode">
       <button class="filter-chip active" data-mode="all">All</button>
-      <button class="filter-chip" data-mode="offline">Offline / Cash</button>
-      <button class="filter-chip" data-mode="online">Online</button>
-      <button class="filter-chip" data-mode="UPI">UPI</button>
-      <button class="filter-chip" data-mode="Debit Card">Debit Card</button>
-      <button class="filter-chip" data-mode="Credit Card">Credit Card</button>
+      <button class="filter-chip" data-mode="Cash">💵 Cash</button>
+      <button class="filter-chip" data-mode="UPI">📱 UPI</button>
+      <button class="filter-chip" data-mode="Net Banking">🌐 Net Banking</button>
+      <button class="filter-chip" data-mode="Debit Card">💳 Debit Card</button>
+      <button class="filter-chip" data-mode="Credit Card">💳 Credit Card</button>
     </div>
     <div class="filter-section-label">Bank</div>
     <div class="filter-scroll" id="filter-bank">
@@ -473,28 +455,21 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
 
     <!-- SINGLE PAYMENT -->
     <div id="add-single-pay">
-      <div class="mode-toggle" style="margin-bottom:10px;">
-        <button class="mode-btn active" data-mode="offline" id="add-mode-offline">💵 Offline</button>
-        <button class="mode-btn" data-mode="online" id="add-mode-online">📱 Online</button>
-      </div>
-      <div class="payment-sub" id="add-offline-sub">
-        <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
-      </div>
-      <div class="payment-sub" id="add-online-sub">
-        <div class="field"><label>Nature of Payment</label>
-          <div class="nature-chips" id="add-nature-chips">
-            <button class="nature-chip active" data-nature="UPI">UPI</button>
-            <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
-            <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
-          </div>
+      <div class="field"><label>Payment Mode</label>
+        <div class="nature-chips" id="add-pay-chips" style="flex-wrap:wrap;">
+          <button class="nature-chip active" data-addpay="Cash">💵 Cash</button>
+          <button class="nature-chip" data-addpay="UPI">📱 UPI</button>
+          <button class="nature-chip" data-addpay="Net Banking">🌐 Net Banking</button>
+          <button class="nature-chip" data-addpay="Debit Card">💳 Debit Card</button>
+          <button class="nature-chip" data-addpay="Credit Card">💳 Credit Card</button>
         </div>
-        <div class="field" id="add-bank-field" style="display:none;"><label>Bank</label>
-          <select id="add-bank">
-            <option value="Bank of Baroda">Bank of Baroda</option>
-            <option value="HDFC Bank">HDFC Bank</option>
-            <option value="American Express">American Express</option>
-          </select>
-        </div>
+      </div>
+      <div class="field" id="add-bank-field" style="display:none;"><label>Bank</label>
+        <select id="add-bank">
+          <option value="Bank of Baroda">Bank of Baroda</option>
+          <option value="HDFC Bank">HDFC Bank</option>
+          <option value="American Express">American Express</option>
+        </select>
       </div>
     </div>
 
@@ -661,29 +636,20 @@ body { font-family: Arial, sans-serif; background: #f0f3f7; color: #111; font-si
       <div class="field"><label>Category</label><select id="rec-cat"></select></div>
     </div>
     <div class="field"><label>Mode of Payment</label>
-      <div class="mode-toggle">
-        <button class="mode-btn active" data-mode="offline" id="rec-mode-offline">💵 Offline</button>
-        <button class="mode-btn" data-mode="online" id="rec-mode-online">📱 Online</button>
+      <div class="nature-chips" id="rec-pay-chips" style="flex-wrap:wrap;">
+        <button class="nature-chip active" data-recpay="Cash">💵 Cash</button>
+        <button class="nature-chip" data-recpay="UPI">📱 UPI</button>
+        <button class="nature-chip" data-recpay="Net Banking">🌐 Net Banking</button>
+        <button class="nature-chip" data-recpay="Debit Card">💳 Debit Card</button>
+        <button class="nature-chip" data-recpay="Credit Card">💳 Credit Card</button>
       </div>
     </div>
-    <div class="payment-sub" id="rec-offline-sub">
-      <div class="field"><label>Nature</label><input type="text" value="Cash" readonly style="background:#f0f0f0;color:#888;" /></div>
-    </div>
-    <div class="payment-sub" id="rec-online-sub">
-      <div class="field"><label>Nature of Payment</label>
-        <div class="nature-chips" id="rec-nature-chips">
-          <button class="nature-chip active" data-nature="UPI">UPI</button>
-          <button class="nature-chip" data-nature="Debit Card">Debit Card</button>
-          <button class="nature-chip" data-nature="Credit Card">Credit Card</button>
-        </div>
-      </div>
-      <div class="field" id="rec-bank-field" style="display:none;"><label>Bank</label>
-        <select id="rec-bank">
-          <option value="Bank of Baroda">Bank of Baroda</option>
-          <option value="HDFC Bank">HDFC Bank</option>
-          <option value="American Express">American Express</option>
-        </select>
-      </div>
+    <div class="field" id="rec-bank-field" style="display:none;"><label>Bank</label>
+      <select id="rec-bank">
+        <option value="Bank of Baroda">Bank of Baroda</option>
+        <option value="HDFC Bank">HDFC Bank</option>
+        <option value="American Express">American Express</option>
+      </select>
     </div>
     <div class="field"><label>Notes (optional)</label><textarea id="rec-notes" placeholder="e.g. Monthly rent payment…"></textarea></div>
     <div class="err" id="err-rec"></div>
@@ -922,12 +888,12 @@ const EXTRA_ICONS=['⭐','🌿','🔥','💧','🌱','☀️','💡','🎯'];
 let db, expenses=[], customCats=[], recurringItems=[], reminders=[], persons=[], monthlyBudget=0;
 let filterPeriod='all', filterMode='all', filterBank='all', filterPersonPeriod='all', searchQuery='';
 let activeChart='category', editingId=null;
-let addPayMode='offline', addNature='UPI';
+let addPayMode='Cash', addNature='UPI';
 let isSplitMode=false;
 let splitParts=[]; // [{mode, nature, bank, amount}]
-let editPayMode='offline', editNature='UPI';
-let recPayMode='offline', recNature='UPI';
-let recedPayMode='offline', recedNature='UPI';
+let editPayMode='Cash', editNature='UPI';
+let recPayMode='Cash', recNature='UPI';
+let recedPayMode='Cash', recedNature='UPI';
 let editingRecId=null;
 let remType='Bill';
 let storedPin=localStorage.getItem('exp_pin')||'1234';
@@ -939,10 +905,38 @@ function today(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getM
 function allCats(){ return [...DEFAULT_CATS.slice(0,-1),...customCats,'Other']; }
 
 function payLabel(e){
-  if(e.payMode==='offline') return 'Cash';
-  if(e.nature==='Credit Card') return `Credit Card${e.bank?' · '+e.bank:''}`;
-  if(e.nature==='Debit Card') return `Debit Card${e.bank?' · '+e.bank:''}`;
-  return 'UPI';
+  // Support both old format (payMode=offline/online + nature) and new format (payMode=Cash/UPI/etc)
+  if(!e.payMode||e.payMode==='offline') return 'Cash';
+  if(e.payMode==='online') return (e.nature||'Online')+(e.bank?' · '+e.bank:'');
+  return e.payMode+(e.bank?' · '+e.bank:'');
+}
+
+function getExpPayMode(e){
+  // Returns the flat payment mode string for filtering
+  if(!e.payMode||e.payMode==='offline') return 'Cash';
+  if(e.payMode==='online') return e.nature||'UPI';
+  return e.payMode;
+}
+
+// ── FLAT CHIP WIRER ──
+function wirePayChips(chipsSelector, dataAttr, bankFieldId, callback){
+  const chips=document.querySelectorAll(chipsSelector);
+  const bankField=document.getElementById(bankFieldId);
+  chips.forEach(c=>{
+    c.addEventListener('click',()=>{
+      chips.forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      const val=c.dataset[dataAttr];
+      callback(val);
+      bankField.style.display=['Debit Card','Credit Card','Net Banking'].includes(val)?'block':'none';
+    });
+  });
+}
+
+function setPayChip(chipsSelector, dataAttr, val, bankFieldId){
+  document.querySelectorAll(chipsSelector).forEach(c=>c.classList.toggle('active',c.dataset[dataAttr]===val));
+  const bankField=document.getElementById(bankFieldId);
+  if(bankField) bankField.style.display=['Debit Card','Credit Card','Net Banking'].includes(val)?'block':'none';
 }
 
 function filteredExpenses(){
@@ -955,9 +949,7 @@ function filteredExpenses(){
     return true;
   });
   if(filterMode!=='all'){
-    if(filterMode==='offline') list=list.filter(e=>e.payMode==='offline');
-    else if(filterMode==='online') list=list.filter(e=>e.payMode==='online');
-    else list=list.filter(e=>e.nature===filterMode);
+    list=list.filter(e=>getExpPayMode(e)===filterMode);
   }
   if(filterBank!=='all') list=list.filter(e=>e.bank===filterBank);
   if(searchQuery){
@@ -986,39 +978,6 @@ function buildCustomCatList(){
       <span>${c}</span><button data-cat="${c}" style="background:none;border:none;cursor:pointer;color:#0F6E56;font-size:14px;padding:0;">×</button>
     </div>`
   ).join('');
-}
-
-// ── PAYMENT MODE WIRING ──
-function wirePayMode(prefix){
-  const offBtn=document.getElementById(`${prefix}-mode-offline`);
-  const onBtn=document.getElementById(`${prefix}-mode-online`);
-  const offSub=document.getElementById(`${prefix}-offline-sub`);
-  const onSub=document.getElementById(`${prefix}-online-sub`);
-  const bankField=document.getElementById(`${prefix}-bank-field`);
-  const chips=document.querySelectorAll(`#${prefix}-nature-chips .nature-chip`);
-
-  function setMode(mode){
-    if(prefix==='add') addPayMode=mode;
-    else if(prefix==='edit') editPayMode=mode;
-    else if(prefix==='reced') recedPayMode=mode;
-    else recPayMode=mode;
-    offBtn.classList.toggle('active',mode==='offline');
-    onBtn.classList.toggle('active',mode==='online');
-    offSub.classList.toggle('show',mode==='offline');
-    onSub.classList.toggle('show',mode==='online');
-  }
-  function setNature(n){
-    if(prefix==='add') addNature=n;
-    else if(prefix==='edit') editNature=n;
-    else if(prefix==='reced') recedNature=n;
-    else recNature=n;
-    chips.forEach(c=>c.classList.toggle('active',c.dataset.nature===n));
-    bankField.style.display=(n==='Credit Card'||n==='Debit Card')?'block':'none';
-  }
-  offBtn.addEventListener('click',()=>setMode('offline'));
-  onBtn.addEventListener('click',()=>setMode('online'));
-  chips.forEach(chip=>chip.addEventListener('click',()=>setNature(chip.dataset.nature)));
-  setMode('offline');
 }
 
 function renderMetrics(){
@@ -1474,30 +1433,39 @@ function renderCCSummary(){
     if(m<0){m=11; y--;}
   }
 
+  // CC from expenses — support both old and new format
   const ccExp=expenses.filter(e=>{
     const d=new Date(e.date);
-    return e.nature==='Credit Card' && d.getMonth()===m && d.getFullYear()===y;
+    const isCC=(e.payMode==='Credit Card')||(e.payMode==='online'&&e.nature==='Credit Card');
+    return isCC && d.getMonth()===m && d.getFullYear()===y;
+  });
+
+  // CC from investments
+  const ccInv=investments.filter(e=>{
+    const d=new Date(e.date);
+    return e.payMode==='Credit Card' && d.getMonth()===m && d.getFullYear()===y;
   });
 
   const wrap=document.getElementById('cc-summary-wrap');
-  if(!ccExp.length){ wrap.style.display='none'; return; }
+  if(!ccExp.length && !ccInv.length){ wrap.style.display='none'; return; }
   wrap.style.display='block';
 
-  // Group by bank
+  // Group by bank — merge both
   const banks={};
   ccExp.forEach(e=>{
     const b=e.bank||'Unknown Bank';
-    if(!banks[b]) banks[b]={total:0,count:0,items:[]};
-    banks[b].total+=e.amount;
-    banks[b].count++;
-    banks[b].items.push(e);
+    if(!banks[b]) banks[b]={total:0,expCount:0,invCount:0,expTotal:0,invTotal:0};
+    banks[b].total+=e.amount; banks[b].expTotal+=e.amount; banks[b].expCount++;
+  });
+  ccInv.forEach(e=>{
+    const b=e.bank||'Unknown Bank';
+    if(!banks[b]) banks[b]={total:0,expCount:0,invCount:0,expTotal:0,invTotal:0};
+    banks[b].total+=e.amount; banks[b].invTotal+=e.amount; banks[b].invCount++;
   });
 
-  const grandTotal=ccExp.reduce((s,e)=>s+e.amount,0);
+  const grandTotal=Object.values(banks).reduce((s,b)=>s+b.total,0);
   const mLabel=new Date(y,m,1).toLocaleString('default',{month:'long',year:'numeric'});
   const bankColors={'Bank of Baroda':'#1D9E75','HDFC Bank':'#378ADD','American Express':'#D4537E','Unknown Bank':'#888'};
-
-  // Due date estimate (most banks bill by 5th-10th of next month)
   const nextM=m===11?0:m+1;
   const nextY=m===11?y+1:y;
   const dueLabel=new Date(nextY,nextM,1).toLocaleString('default',{month:'long',year:'numeric'});
@@ -1512,17 +1480,28 @@ function renderCCSummary(){
         <span style="font-size:13px;font-weight:700;color:${col};">💳 ${bank}</span>
         <span style="font-size:14px;font-weight:700;color:${col};">${fmt(Math.round(data.total))}</span>
       </div>
-      <div style="background:#f0f0f0;border-radius:6px;height:8px;overflow:hidden;margin-bottom:4px;">
+      <div style="background:#f0f0f0;border-radius:6px;height:8px;overflow:hidden;margin-bottom:5px;">
         <div style="width:${pct}%;height:100%;background:${col};border-radius:6px;"></div>
       </div>
-      <div style="font-size:11px;color:#aaa;">${data.count} transaction${data.count>1?'s':''} · ${pct}% of total CC spend</div>
+      <div style="display:flex;gap:10px;font-size:11px;color:#aaa;flex-wrap:wrap;">
+        ${data.expCount>0?`<span>🛍️ Expenses: ${fmt(Math.round(data.expTotal))} (${data.expCount} txn)</span>`:''}
+        ${data.invCount>0?`<span>📈 Investments: ${fmt(Math.round(data.invTotal))} (${data.invCount} txn)</span>`:''}
+      </div>
     </div>`;
   });
 
-  // Grand total row
-  html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FFF0F6;border-radius:9px;border:1.5px solid #F5C0D8;margin-top:4px;">
-    <span style="font-size:13px;font-weight:700;color:#D4537E;">Total Bill Amount</span>
-    <span style="font-size:16px;font-weight:700;color:#D4537E;">${fmt(Math.round(grandTotal))}</span>
+  const totalExpCC=ccExp.reduce((s,e)=>s+e.amount,0);
+  const totalInvCC=ccInv.reduce((s,e)=>s+e.amount,0);
+
+  html+=`<div style="background:#FFF0F6;border-radius:9px;border:1.5px solid #F5C0D8;padding:10px 12px;margin-top:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:700;color:#D4537E;">Total Bill Amount</span>
+      <span style="font-size:16px;font-weight:700;color:#D4537E;">${fmt(Math.round(grandTotal))}</span>
+    </div>
+    <div style="font-size:11px;color:#aaa;display:flex;gap:12px;flex-wrap:wrap;">
+      ${totalExpCC>0?`<span>🛍️ Expenses: ${fmt(Math.round(totalExpCC))}</span>`:''}
+      ${totalInvCC>0?`<span>📈 Investments: ${fmt(Math.round(totalInvCC))}</span>`:''}
+    </div>
   </div>`;
 
   document.getElementById('cc-summary-body').innerHTML=html;
@@ -1597,20 +1576,10 @@ function openEditModal(e){
   buildCatSelect('edit-cat');
   document.getElementById('edit-cat').value=e.cat;
 
-  // payment mode
-  editPayMode=e.payMode||'offline';
-  editNature=e.nature||'UPI';
-  const offBtn=document.getElementById('edit-mode-offline');
-  const onBtn=document.getElementById('edit-mode-online');
-  offBtn.classList.toggle('active',editPayMode==='offline');
-  onBtn.classList.toggle('active',editPayMode==='online');
-  document.getElementById('edit-offline-sub').classList.toggle('show',editPayMode==='offline');
-  document.getElementById('edit-online-sub').classList.toggle('show',editPayMode==='online');
-  document.querySelectorAll('#edit-nature-chips .nature-chip').forEach(c=>{
-    c.classList.toggle('active',c.dataset.nature===editNature);
-  });
-  const bankField=document.getElementById('edit-bank-field');
-  bankField.style.display=(editNature==='Credit Card'||editNature==='Debit Card')?'block':'none';
+  // payment mode — support both old (offline/online+nature) and new (flat) format
+  const rawMode=e.payMode||'Cash';
+  editPayMode=(rawMode==='offline')?'Cash':(rawMode==='online'?(e.nature||'UPI'):rawMode);
+  setPayChip('#edit-pay-chips','editpay',editPayMode,'edit-bank-field');
   if(e.bank) document.getElementById('edit-bank').value=e.bank;
 
   document.getElementById('edit-modal').classList.add('show');
@@ -1857,10 +1826,11 @@ window.initApp = async function(){
   document.getElementById('inp-date').value=today();
   document.getElementById('inp-date').max=today();
   buildAllCatSelects();
-  wirePayMode('add');
-  wirePayMode('edit');
-  wirePayMode('rec');
-  wirePayMode('reced');
+  // Wire payment chips for all forms
+  wirePayChips('#add-pay-chips','addpay','add-bank-field', v=>{ addPayMode=v; });
+  wirePayChips('#edit-pay-chips','editpay','edit-bank-field', v=>{ editPayMode=v; });
+  wirePayChips('#rec-pay-chips','recpay','rec-bank-field', v=>{ recPayMode=v; });
+  wirePayChips('#reced-pay-chips','recedpay','reced-bank-field', v=>{ recedPayMode=v; });
 
   const dot=document.getElementById('sync-dot');
   const syncLabel=document.getElementById('sync-label');
@@ -1892,6 +1862,7 @@ window.initApp = async function(){
   onSnapshot(query(collection(db,'investments'),orderBy('date','desc')), snap=>{
     investments=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderInvMetrics();
+    renderCCSummary();
     if(document.getElementById('tab-invest').style.display==='block') renderInvestTab();
   });
 
@@ -2120,8 +2091,8 @@ window.initApp = async function(){
         });
       }
     } else {
-      const bank=(addPayMode==='online'&&(addNature==='Credit Card'||addNature==='Debit Card'))?document.getElementById('add-bank').value:'';
-      await addDoc(collection(db,'expenses'),{desc,amount,cat,date,notes,payMode:addPayMode,nature:addPayMode==='online'?addNature:'',bank,tag});
+      const bank=['Debit Card','Credit Card','Net Banking'].includes(addPayMode)?document.getElementById('add-bank').value:'';
+      await addDoc(collection(db,'expenses'),{desc,amount,cat,date,notes,payMode:addPayMode,nature:addPayMode,bank,tag});
     }
 
     document.getElementById('inp-desc').value='';
@@ -2147,9 +2118,9 @@ window.initApp = async function(){
     if(!date){err.textContent='Please select a date.';return;}
     if(date>today()){err.textContent='Future date not allowed.';return;}
     err.textContent='';
-    const bank=(editPayMode==='online'&&(editNature==='Credit Card'||editNature==='Debit Card'))?document.getElementById('edit-bank').value:'';
+    const bank=['Debit Card','Credit Card','Net Banking'].includes(editPayMode)?document.getElementById('edit-bank').value:'';
     const tag=document.getElementById('edit-tag').value;
-    await updateDoc(doc(db,'expenses',editingId),{desc,amount,cat,date,notes,payMode:editPayMode,nature:editPayMode==='online'?editNature:'',bank,tag});
+    await updateDoc(doc(db,'expenses',editingId),{desc,amount,cat,date,notes,payMode:editPayMode,nature:editPayMode,bank,tag});
     document.getElementById('edit-modal').classList.remove('show');
     editingId=null;
   });
@@ -2199,8 +2170,8 @@ window.initApp = async function(){
     if(!name){err.textContent='Please enter a name.';return;}
     if(!amount||amount<=0){err.textContent='Please enter a valid amount.';return;}
     err.textContent='';
-    const bank=(recPayMode==='online'&&(recNature==='Credit Card'||recNature==='Debit Card'))?document.getElementById('rec-bank').value:'';
-    await addDoc(collection(db,'recurring'),{name,amount,cat,notes,payMode:recPayMode,nature:recPayMode==='online'?recNature:'',bank});
+    const bank=['Debit Card','Credit Card','Net Banking'].includes(recPayMode)?document.getElementById('rec-bank').value:'';
+    await addDoc(collection(db,'recurring'),{name,amount,cat,notes,payMode:recPayMode,nature:recPayMode,bank});
     document.getElementById('rec-name').value='';
     document.getElementById('rec-amount').value='';
     document.getElementById('rec-notes').value='';
@@ -2228,16 +2199,9 @@ window.initApp = async function(){
       document.getElementById('reced-amount').value=r.amount;
       document.getElementById('reced-cat').value=r.cat;
       document.getElementById('reced-notes').value=r.notes||'';
-      recedPayMode=r.payMode||'offline';
-      recedNature=r.nature||'UPI';
-      const offBtn=document.getElementById('reced-mode-offline');
-      const onBtn=document.getElementById('reced-mode-online');
-      offBtn.classList.toggle('active',recedPayMode==='offline');
-      onBtn.classList.toggle('active',recedPayMode==='online');
-      document.getElementById('reced-offline-sub').classList.toggle('show',recedPayMode==='offline');
-      document.getElementById('reced-online-sub').classList.toggle('show',recedPayMode==='online');
-      document.querySelectorAll('#reced-nature-chips .nature-chip').forEach(c=>c.classList.toggle('active',c.dataset.nature===recedNature));
-      document.getElementById('reced-bank-field').style.display=(recedNature==='Credit Card'||recedNature==='Debit Card')?'block':'none';
+      const rawMode=r.payMode||'Cash';
+      recedPayMode=(rawMode==='offline')?'Cash':(rawMode==='online'?(r.nature||'UPI'):rawMode);
+      setPayChip('#reced-pay-chips','recedpay',recedPayMode,'reced-bank-field');
       if(r.bank) document.getElementById('reced-bank').value=r.bank;
       document.getElementById('rec-edit-modal').classList.add('show');
     }
@@ -2252,8 +2216,8 @@ window.initApp = async function(){
     if(!name){err.textContent='Please enter a name.';return;}
     if(!amount||amount<=0){err.textContent='Please enter a valid amount.';return;}
     err.textContent='';
-    const bank=(recedPayMode==='online'&&(recedNature==='Credit Card'||recedNature==='Debit Card'))?document.getElementById('reced-bank').value:'';
-    await updateDoc(doc(db,'recurring',editingRecId),{name,amount,cat,notes,payMode:recedPayMode,nature:recedPayMode==='online'?recedNature:'',bank});
+    const bank=['Debit Card','Credit Card','Net Banking'].includes(recedPayMode)?document.getElementById('reced-bank').value:'';
+    await updateDoc(doc(db,'recurring',editingRecId),{name,amount,cat,notes,payMode:recedPayMode,nature:recedPayMode,bank});
     document.getElementById('rec-edit-modal').classList.remove('show');
     editingRecId=null;
   });
